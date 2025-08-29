@@ -5,6 +5,14 @@
   const canvas = document.getElementById('world');
   const ctx = canvas.getContext('2d');
 
+  // Center image to draw inside the sphere (defaults to our neon SVG)
+  const centerImage = new Image();
+  const defaultCenterImage = (canvas && canvas.dataset && canvas.dataset.centerImage) || 'assets/planet-python-logo.svg';
+  centerImage.src = defaultCenterImage;
+  centerImage.decoding = 'async';
+  let centerImageLoaded = false;
+  centerImage.addEventListener('load', ()=>{ centerImageLoaded = true; });
+
   function resize(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -131,6 +139,33 @@
       }
       drawPath(pts);
     }
+    ctx.restore();
+  }
+
+  // Draw provided image clipped inside the projected sphere circle
+  function drawCenterImage(){
+    if(!centerImageLoaded) return;
+    const c = project({x:0,y:0,z:0});
+    const cz = camDist * R;
+    const f = (canvas.height * 0.8) / (cz || 1e-3);
+    const rpix = R * f; // sphere radius in pixels
+    const diameter = rpix * 2 * 0.9; // leave margin inside the sphere
+    const w = diameter; const h = diameter;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, rpix * 0.92, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.globalAlpha = 0.42;
+    ctx.globalCompositeOperation = 'screen';
+    ctx.drawImage(centerImage, c.x - w/2, c.y - h/2, w, h);
+    const grad = ctx.createRadialGradient(c.x, c.y, rpix*0.2, c.x, c.y, rpix*0.92);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.45)');
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, rpix*0.92, 0, Math.PI*2);
+    ctx.fill();
     ctx.restore();
   }
 
@@ -353,6 +388,7 @@
 
     // draw
     ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawCenterImage();
     drawGrid();
     drawEdges();
     drawNodes();

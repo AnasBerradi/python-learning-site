@@ -1,0 +1,40 @@
+# Commit Message Template
+# Lines starting with '#' are comments and will be ignored.
+# Use Conventional Commits for the summary: https://www.conventionalcommits.org/
+# Examples: feat, fix, chore, docs, refactor, perf, style, test, build, ci
+
+# Summary (required)
+# type(scope): short imperative summary
+
+
+# Why (motivation / problem)
+# - What problem does this change solve? Why now?
+
+
+# What (key changes)
+# - Bullet the main changes and impacted files/modules
+# - Mention any new assets or configuration flags
+
+
+# How (implementation details)
+# - Noteworthy technical decisions, algorithms, or trade-offs
+# - Alternatives considered if relevant
+
+
+# Visuals / UX
+# - Describe user-facing effects
+# - Add preview URL or screenshots if relevant
+
+
+# Risks / Compatibility
+# - Potential breakages, migrations, performance or security concerns
+# - Rollback plan, feature flags, or mitigations
+
+
+# Testing / Verification
+# - How you tested (manual/automated), steps to reproduce/verify
+# - Any logs or console output worth noting
+
+
+# Notes / Follow-ups
+# - TODOs, future enhancements, or cleanups to track

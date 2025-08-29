@@ -9,7 +9,10 @@
 </head>
 <body>
   <div id="hud">
-    <div class="logo">PYTHON PLANET</div>
+    <div class="logo">
+      <img src="assets/planet-python-logo.svg" alt="Planet Python logo" class="logo-mark" />
+      <span class="logo-text">PYTHON PLANET</span>
+    </div>
     <div class="stats">
       <span id="xp">XP: 0</span>
       <span id="coins">Coins: 0</span>
@@ -17,7 +20,7 @@
     <div class="legend">Click a glowing node to travel • Complete a stage to unlock the next</div>
   </div>
 
-  <canvas id="world" width="1200" height="700" aria-label="3D coding planet canvas"></canvas>
+  <canvas id="world" width="1200" height="700" aria-label="3D coding planet canvas" data-center-image="assets/python-mark-neon.svg"></canvas>
 
   <div id="ui-overlay" class="hidden" aria-live="polite">
     <div class="panel">
