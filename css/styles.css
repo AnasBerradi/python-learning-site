@@ -20,9 +20,9 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: #ccffe8; fon
 #hud {
   position: fixed; top: 0; left: 0; right: 0; padding: 10px 16px; display: flex; align-items: center; gap: 16px; z-index: 20;
 }
-.logo { color: var(--green); text-shadow: var(--glow); letter-spacing: 2px; font-weight: 900; display:flex; align-items:center; gap:10px; }
-.logo-mark { width: 36px; height: 36px; display:block; filter: drop-shadow(0 0 8px rgba(0,255,153,0.6)) drop-shadow(0 0 16px rgba(0,231,255,0.4)); }
-.logo-text { color: var(--green); }
+.logo { color: var(--green); text-shadow: var(--glow); letter-spacing: 2px; font-weight: 900; display:flex; align-items:center; gap:12px; }
+.logo-mark { width: 56px; height: 56px; display:block; filter: drop-shadow(0 0 10px rgba(0,255,153,0.75)) drop-shadow(0 0 20px rgba(0,231,255,0.45)); }
+.logo-text { color: var(--green); font-size: 20px; }
 .stats { margin-left: auto; display: flex; gap: 16px; color: var(--cyan); }
 .legend { opacity: 0.8; font-size: 12px; }
 
