@@ -1,105 +1,106 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python Planet — 3D Learning World</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planet Python • Learn Python with a Game</title>
   <link rel="stylesheet" href="css/styles.css" />
-  <!-- Enhanced Python-like Interpreter (Local Implementation) -->
+  <style>
+    /* Landing page styles (scoped) */
+    :root { --brand:#38bdf8; --dark:#0b1220; --muted:#a1a6b3; }
+    body{ margin:0; font-family: Inter, system-ui, Arial, sans-serif; background: radial-gradient(1200px 600px at 20% -10%, rgba(56,189,248,.25), transparent),radial-gradient(800px 400px at 80% -20%, rgba(147,51,234,.18), transparent), #0b1120; color:#e5e7eb; }
+    a{ color:inherit; text-decoration:none }
+    .lp-header{ display:flex; align-items:center; justify-content:space-between; padding:20px 28px; position:sticky; top:0; background:linear-gradient(to bottom, rgba(11,17,32,.85), rgba(11,17,32,.55)); backdrop-filter: blur(10px); border-bottom:1px solid rgba(148,163,184,.12); z-index:10 }
+    .lp-brand{ display:flex; align-items:center; gap:12px }
+    .lp-brand img{ width:36px; height:36px; filter: drop-shadow(0 0 8px rgba(56,189,248,.5)) }
+    .lp-brand span{ font-weight:700; letter-spacing:.2px }
+    .lp-cta a{ display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border:1px solid rgba(148,163,184,.25); border-radius:10px; background:linear-gradient(180deg, rgba(56,189,248,.12), rgba(56,189,248,.04)); color:#cffafe }
+    .lp-cta a:hover{ border-color: rgba(56,189,248,.5) }
+    .hero{ display:grid; grid-template-columns: 1.1fr .9fr; gap:32px; padding:56px 28px 20px; align-items:center }
+    .hero h1{ font-size: clamp(28px, 4vw, 48px); line-height:1.1; margin:0 0 14px; text-shadow: 0 10px 40px rgba(56,189,248,.2) }
+    .hero p{ font-size: clamp(14px, 1.8vw, 18px); color:#cbd5e1; margin:0 0 18px }
+    .hero .actions{ display:flex; gap:12px; flex-wrap:wrap }
+    .hero .primary{ padding:12px 18px; border-radius:12px; background:linear-gradient(180deg, rgba(56,189,248,.22), rgba(56,189,248,.08)); border:1px solid rgba(56,189,248,.45); color:#0b1120; font-weight:700; color:#e0f2fe }
+    .hero .secondary{ padding:12px 18px; border-radius:12px; border:1px solid rgba(148,163,184,.3); color:#cbd5e1; background:linear-gradient(180deg, rgba(2,6,23,.6), rgba(2,6,23,.2)) }
+    .panel{ border:1px solid rgba(148,163,184,.16); border-radius:14px; background: radial-gradient(600px 300px at 50% -60%, rgba(56,189,248,.22), transparent), rgba(2,6,23,.6); padding:18px; }
+    .features{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:14px; padding: 10px 28px 28px }
+    .feature{ padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,.16); background:linear-gradient(180deg, rgba(30,41,59,.6), rgba(2,6,23,.6)) }
+    .feature h3{ margin:6px 0 8px; font-size:18px }
+    .team{ padding: 10px 28px 60px; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:14px }
+    .member{ padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,.16); background:linear-gradient(180deg, rgba(30,41,59,.6), rgba(2,6,23,.6)) }
+    .footer{ padding:26px 28px; color:#94a3b8; border-top:1px solid rgba(148,163,184,.12) }
+    @media (max-width: 900px){ .hero{ grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <div id="hud">
-    <div class="logo">
-      <img src="assets/planet-python-logo.svg" alt="Planet Python logo" class="logo-mark" />
-      <span class="logo-text">PYTHON PLANET</span>
+  <header class="lp-header">
+    <div class="lp-brand">
+      <img src="assets/planet-python-logo.svg" alt="Planet Python" />
+      <span>Planet Python</span>
     </div>
-    <div class="stats">
-      <span id="xp">XP: 0</span>
-      <span id="coins">Coins: 0</span>
-    </div>
-    <div class="legend">Click a glowing node to travel • Complete a stage to unlock the next</div>
-  </div>
+    <nav class="lp-cta">
+      <a href="learn.html" title="Start Learning">Start Learning →</a>
+    </nav>
+  </header>
 
-  <canvas id="world" width="1200" height="700" aria-label="3D coding planet canvas" data-center-image="assets/python-mark-neon.svg"></canvas>
-
-  <div id="ui-overlay" class="hidden" aria-live="polite">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="stage-title" id="stageTitle">Stage</div>
-        <div class="panel-tabs">
-          <button class="tab-btn active" data-tab="lesson">Lesson</button>
-          <button class="tab-btn" data-tab="quiz">Quiz</button>
-          <button class="tab-btn" data-tab="minigame">Mini-Game</button>
-        </div>
-        <button id="closePanel" title="Close">✕</button>
-      </div>
-      <div class="panel-content">
-        <div id="tab-lesson" class="tab active">
-          <div class="lesson-split">
-            <div class="lesson-main">
-              <div class="lesson-content monospace" id="lessonContent"></div>
-              <div class="lesson-actions" style="display:flex;align-items:center;gap:10px;margin-top:10px;">
-                <button id="prevSlide" class="secondary">◀ Prev</button>
-                <span id="slideProgress" class="monospace"></span>
-                <button id="nextSlide" class="primary">Next ▶</button>
-              </div>
-            </div>
-            <div class="python-console">
-              <div class="console-header">
-                <span class="console-title">Python Console</span>
-                <button id="clearConsole" class="secondary" title="Clear console">Clear</button>
-              </div>
-              <div class="console-output monospace" id="consoleOutput"></div>
-              <div class="console-input-area">
-                <div class="console-input-container">
-                  <div class="console-input-header">
-                    <span class="console-prompt monospace">>>> </span>
-                    <div class="console-input-actions">
-                      <button id="runCode" type="button" class="primary">Run (Ctrl+Enter)</button>
-                      <button id="formatCode" type="button" class="secondary" title="Format code">Format</button>
-                    </div>
-                  </div>
-                  <textarea id="consoleInput" class="console-input monospace" placeholder="# Try some Python code...
-print('Hello, World!')
-
-# Multi-line code works too:
-for i in range(3):
-    print(f'Line {i}')" rows="4"></textarea>
-                </div>
-              </div>
-              <div class="console-hints monospace" id="consoleHints">
-                💡 Tip: Try variables, math, or print() statements
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="tab-quiz" class="tab">
-          <div id="quizContent" class="monospace"></div>
-          <div class="quiz-actions">
-            <button id="submitQuiz" class="primary">Submit Answer</button>
-            <button id="nextQuestion" class="primary" disabled>Next Question ▶</button>
-            <div id="quizFeedback" class="feedback"></div>
-          </div>
-        </div>
-        <div id="tab-minigame" class="tab">
-          <div id="minigameRoot" class="minigame-root"></div>
-          <div class="minigame-actions">
-            <button id="finishMinigame" class="primary">Finish Mini-Game</button>
-            <div id="minigameFeedback" class="feedback"></div>
-          </div>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>Learn Python by exploring a 3D planet</h1>
+        <p>Navigate a stylized world, solve minigames, and level up. Built by a small team passionate about making code fun and approachable.</p>
+        <div class="actions">
+          <a href="learn.html" class="primary">Play & Learn</a>
+          <a href="#team" class="secondary">Meet the Team</a>
         </div>
       </div>
-      <div class="panel-footer">
-        <button id="unlockNext" class="success" disabled>Unlock Next Stage</button>
+      <div class="panel">
+        <img src="assets/planet-python-logo.svg" alt="Planet" style="width:100%; max-width:420px; display:block; margin: 0 auto; filter: drop-shadow(0 0 25px rgba(56,189,248,.35))" />
       </div>
-    </div>
-  </div>
+    </section>
 
-  <div id="toast" class="toast hidden"></div>
+    <section class="features">
+      <article class="feature">
+        <h3>Game-first learning</h3>
+        <p>Progress by completing playful challenges. Each node teaches a bite-sized concept.</p>
+      </article>
+      <article class="feature">
+        <h3>Accessible for beginners</h3>
+        <p>No setup required. Open in your browser and start coding immediately.</p>
+      </article>
+      <article class="feature">
+        <h3>Visual feedback</h3>
+        <p>See your progress on the planet. Earn XP and coins as you advance.</p>
+      </article>
+      <article class="feature">
+        <h3>Open & extensible</h3>
+        <p>Built with simple web tech so it’s easy to contribute and create new challenges.</p>
+      </article>
+    </section>
 
-  <script src="js/stages.js"></script>
-  <script src="js/world.js"></script>
-  <script src="js/minigames.js"></script>
-  <script src="js/ui.js"></script>
+    <section id="team" class="team">
+      <div class="member">
+        <h3>Team Member 1</h3>
+        <p>Role: Project Lead & Developer</p>
+      </div>
+      <div class="member">
+        <h3>Team Member 2</h3>
+        <p>Role: Game Design & UX</p>
+      </div>
+      <div class="member">
+        <h3>Team Member 3</h3>
+        <p>Role: Curriculum & Content</p>
+      </div>
+      <div class="member">
+        <h3>Team Member 4</h3>
+        <p>Role: QA & Community</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">© <span id="year"></span> Planet Python Team • <a href="learn.html">Start Learning</a></footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
