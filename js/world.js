@@ -142,6 +142,33 @@
     ctx.restore();
   }
 
+  // Draw provided image clipped inside the projected sphere circle
+  function drawCenterImage(){
+    if(!centerImageLoaded) return;
+    const c = project({x:0,y:0,z:0});
+    const cz = camDist * R;
+    const f = (canvas.height * 0.8) / (cz || 1e-3);
+    const rpix = R * f; // sphere radius in pixels
+    const diameter = rpix * 2 * 0.9; // leave margin inside the sphere
+    const w = diameter; const h = diameter;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, rpix * 0.92, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.globalAlpha = 0.42;
+    ctx.globalCompositeOperation = 'screen';
+    ctx.drawImage(centerImage, c.x - w/2, c.y - h/2, w, h);
+    const grad = ctx.createRadialGradient(c.x, c.y, rpix*0.2, c.x, c.y, rpix*0.92);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.45)');
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, rpix*0.92, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   function drawPath(pts){
     ctx.beginPath();
     for(let i=0;i<pts.length;i++){
@@ -410,38 +437,3 @@
     }
   };
 })();
-
-// Draw provided image clipped inside the projected sphere circle
-function drawCenterImage(){
-  if(!centerImageLoaded) return;
-  // project sphere center and compute projected radius
-  const c = project({x:0,y:0,z:0});
-  const cz = camDist * R;
-  const f = (canvas.height * 0.8) / (cz || 1e-3);
-  const rpix = R * f; // sphere radius in pixels
-
-  const diameter = rpix * 2 * 0.9; // leave margin inside the sphere
-  const w = diameter; const h = diameter;
-
-  ctx.save();
-  // clip to sphere circle
-  ctx.beginPath();
-  ctx.arc(c.x, c.y, rpix * 0.92, 0, Math.PI * 2);
-  ctx.clip();
-  // subtle glow blend
-  ctx.globalAlpha = 0.42;
-  ctx.globalCompositeOperation = 'screen';
-  // draw centered
-  ctx.drawImage(centerImage, c.x - w/2, c.y - h/2, w, h);
-
-  // vignette to sit inside sphere
-  const grad = ctx.createRadialGradient(c.x, c.y, rpix*0.2, c.x, c.y, rpix*0.92);
-  grad.addColorStop(0, 'rgba(0,0,0,0)');
-  grad.addColorStop(1, 'rgba(0,0,0,0.45)');
-  ctx.globalCompositeOperation = 'multiply';
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(c.x, c.y, rpix*0.92, 0, Math.PI*2);
-  ctx.fill();
-  ctx.restore();
-}
