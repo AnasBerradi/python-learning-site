@@ -144,6 +144,8 @@
       if(!canvas) return;
       const ctx = canvas.getContext('2d');
       let W=0,H=0,cx=0,cy=0; const dpr = window.devicePixelRatio||1;
+      // Load spaceship sprite
+      const shipImg = new Image(); let shipReady=false; shipImg.onload=()=>shipReady=true; shipImg.src = 'assets/spaceship-neon.svg';
       function size(){
         const r = canvas.getBoundingClientRect();
         const w = Math.max(400, r.width||640), h = Math.max(260, r.height||380);
@@ -158,40 +160,47 @@
       const ship = {x:0,y:0,z:2,r:10};
       let speedZ = SPEED_Z_START; let score=0, high=0, gameOver=false, running=true;
       let inputX=0, inputY=0; const obstacles=[];
-
-      function project(obj){ const f = FOV/obj.z; return { x: cx + obj.x*f, y: cy + obj.y*f, r: obj.size*f }; }
+      function projectPoint(x,y,z){ const f = FOV/Math.max(0.0001,z); return { x: cx + x*f, y: cy + y*f }; }
+      function drawRails(){
+        const near = ship.z+1, far = 180, steps = 18; ctx.save(); ctx.strokeStyle='rgba(99,255,199,0.45)'; ctx.lineWidth=1.2; ctx.setLineDash([6,6]); let prev=null;
+        for(let i=0;i<=steps;i++){ const z= near + (far-near)*(i/steps); const f=FOV/z; const l={x:cx+(-MAX_OFFSET)*f,y:cy}; const r={x:cx+(MAX_OFFSET)*f,y:cy}; const t={x:cx,y:cy+(-MAX_OFFSET)*f}; const b={x:cx,y:cy+(MAX_OFFSET)*f}; if(prev){ ctx.beginPath(); ctx.moveTo(prev.l.x,prev.l.y); ctx.lineTo(l.x,l.y); ctx.moveTo(prev.r.x,prev.r.y); ctx.lineTo(r.x,r.y); ctx.moveTo(prev.t.x,prev.t.y); ctx.lineTo(t.x,t.y); ctx.moveTo(prev.b.x,prev.b.y); ctx.lineTo(b.x,b.y); ctx.stroke(); } prev={l,r,t,b}; }
+        ctx.setLineDash([]); const nz=8, nf=FOV/nz; const bx=cx-MAX_OFFSET*nf, by=cy-MAX_OFFSET*nf, bw=MAX_OFFSET*nf*2; ctx.strokeStyle='rgba(163,230,255,0.55)'; ctx.lineWidth=1.6; ctx.strokeRect(bx,by,bw,bw); ctx.restore();
+      }
+      function drawBlock(o){ const f=FOV/o.z; const px=cx+o.x*f; const py=cy+o.y*f; const s=Math.max(6, o.size*1.6*f); if(px<-120||px>W+120||py<-120||py>H+120) return; const w=s,h=s; const ox=-(px-cx)*0.18, oy=-(py-cy)*0.18; ctx.save(); const depthAlpha=Math.max(0.35,1-(o.z/160)); ctx.globalAlpha=depthAlpha; ctx.shadowColor='rgba(125,249,198,0.6)'; ctx.shadowBlur=18*(1/o.z)*60; ctx.fillStyle='rgba(0,255,180,0.35)'; ctx.fillRect(px-w/2,py-h/2,w,h); ctx.beginPath(); ctx.moveTo(px-w/2,py-h/2); ctx.lineTo(px+w/2,py-h/2); ctx.lineTo(px+w/2+ox,py-h/2+oy); ctx.lineTo(px-w/2+ox,py-h/2+oy); ctx.closePath(); ctx.fillStyle='rgba(125,249,198,0.55)'; ctx.fill(); ctx.beginPath(); ctx.moveTo(px+w/2,py-h/2); ctx.lineTo(px+w/2+ox,py-h/2+oy); ctx.lineTo(px+w/2+ox,py+h/2+oy); ctx.lineTo(px+w/2,py+h/2); ctx.closePath(); ctx.fillStyle='rgba(0,200,160,0.32)'; ctx.fill(); ctx.beginPath(); ctx.moveTo(px-w/2,py-h/2); ctx.lineTo(px-w/2+ox,py-h/2+oy); ctx.lineTo(px-w/2+ox,py+h/2+oy); ctx.lineTo(px-w/2,py+h/2); ctx.closePath(); ctx.fillStyle='rgba(0,200,160,0.28)'; ctx.fill(); ctx.strokeStyle='rgba(163,230,255,0.35)'; ctx.lineWidth=Math.max(1,s*0.06); ctx.strokeRect(px-w/2,py-h/2,w,h); ctx.beginPath(); ctx.moveTo(px-w/2,py-h/2); ctx.lineTo(px-w/2+ox,py-h/2+oy); ctx.moveTo(px+w/2,py-h/2); ctx.lineTo(px+w/2+ox,py-h/2+oy); ctx.moveTo(px-w/2,py+h/2); ctx.lineTo(px-w/2+ox,py+h/2+oy); ctx.moveTo(px+w/2,py+h/2); ctx.lineTo(px+w/2+ox,py+h/2+oy); ctx.stroke(); ctx.restore(); }
       function spawn(){ const z=80+Math.random()*120; const x=(Math.random()*2-1)*MAX_OFFSET*1.1; const y=(Math.random()*2-1)*MAX_OFFSET*0.8; const size=8+Math.random()*14; obstacles.push({x,y,z,size}); }
       for(let i=0;i<14;i++) spawn();
 
       function reset(){ obstacles.length=0; for(let i=0;i<14;i++) spawn(); ship.x=0; ship.y=0; speedZ=SPEED_Z_START; score=0; gameOver=false; last=performance.now(); }
 
       const keys={};
-      window.addEventListener('pointermove',e=>{ const r=canvas.getBoundingClientRect(); inputX=(e.clientX-r.left)/r.width-0.5; inputY=(e.clientY-r.top)/r.height-0.5; });
+      // Arrow-keys-only controls: disable mouse steering
+      inputX = 0; inputY = 0;
       window.addEventListener('keydown',e=>{ keys[e.key.toLowerCase()]=true; if(gameOver&&(e.key===' '||e.key==='Enter')) reset(); });
       window.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
       canvas.addEventListener('click',()=>{ if(gameOver) reset(); });
       document.addEventListener('visibilitychange',()=>{ running=!document.hidden; if(running){ last=performance.now(); requestAnimationFrame(loop); } });
 
       function update(dt){
-        const kx=(keys['arrowright']||keys['d']?1:0)-(keys['arrowleft']||keys['a']?1:0);
-        const ky=(keys['arrowdown']||keys['s']?1:0)-(keys['arrowup']||keys['w']?1:0);
-        const tx=(inputX + kx*0.8)*MAX_OFFSET; const ty=(inputY + ky*0.8)*MAX_OFFSET;
-        ship.x += (tx-ship.x)*Math.min(1, dt*6); ship.y += (ty-ship.y)*Math.min(1, dt*6);
-        speedZ = Math.min(SPEED_Z_MAX, speedZ + dt*1.2); score += dt*10;
-        for(const o of obstacles){ o.z -= speedZ*dt; }
-        for(let i=obstacles.length-1;i>=0;i--){ if(obstacles[i].z < ship.z-1){ obstacles.splice(i,1); spawn(); } }
-        for(const o of obstacles){ if(o.z < ship.z + 2.5 && o.z > ship.z - 0.5){ const dx=o.x-ship.x, dy=o.y-ship.y; const rr=o.size+ship.r; if(dx*dx+dy*dy < rr*rr){ gameOver=true; high=Math.max(high, score|0); break; } } }
+      // Arrow keys only
+      const kx=(keys['arrowright']?1:0)-(keys['arrowleft']?1:0);
+      const ky=(keys['arrowdown']?1:0)-(keys['arrowup']?1:0);
+      const tx=kx*MAX_OFFSET; const ty=ky*MAX_OFFSET;
+         ship.x += (tx-ship.x)*Math.min(1, dt*6); ship.y += (ty-ship.y)*Math.min(1, dt*6);
+         ship.x = Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, ship.x));
+         ship.y = Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, ship.y));
+         speedZ = Math.min(SPEED_Z_MAX, speedZ + dt*1.2); score += dt*10;
+         for(const o of obstacles){ o.z -= speedZ*dt; }
+         for(let i=obstacles.length-1;i>=0;i--){ if(obstacles[i].z < ship.z-1){ obstacles.splice(i,1); spawn(); } }
+         for(const o of obstacles){ if(o.z < ship.z + 2.5 && o.z > ship.z - 0.5){ const dx=o.x-ship.x, dy=o.y-ship.y; const rr=o.size+ship.r; if(dx*dx+dy*dy < rr*rr){ gameOver=true; high=Math.max(high, score|0); break; } } }
       }
 
       function draw(){
         ctx.clearRect(0,0,W,H);
         const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'rgba(8,14,28,0.6)'); g.addColorStop(1,'rgba(8,20,40,0.9)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
         ctx.beginPath(); ctx.arc(cx,cy,140,0,Math.PI*2); ctx.fillStyle='rgba(56,189,248,0.06)'; ctx.fill();
-        obstacles.sort((a,b)=>b.z-a.z);
-        for(const o of obstacles){ const p=project(o); if(p.r<1||p.x<-100||p.x>W+100||p.y<-100||p.y>H+100) continue; ctx.save(); ctx.globalAlpha=Math.max(0.2, 1-(o.z/140)); ctx.shadowColor='rgba(125,249,198,0.6)'; ctx.shadowBlur=20*(1/o.z)*80; ctx.fillStyle='rgba(125,249,198,0.85)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); ctx.restore(); ctx.strokeStyle='rgba(163,230,255,0.25)'; ctx.lineWidth=Math.max(1,p.r*0.12); ctx.beginPath(); ctx.moveTo(p.x,p.y+p.r*0.2); ctx.lineTo(p.x,p.y+p.r*0.2+Math.max(5,120/(o.z+5))); ctx.stroke(); }
-        ctx.save(); ctx.translate(cx + ship.x*(FOV/ship.z), cy + ship.y*(FOV/ship.z)); ctx.rotate(ship.x*0.01); ctx.shadowColor='rgba(56,189,248,0.9)'; ctx.shadowBlur=20; ctx.fillStyle='#7ef9c6'; const s=14; ctx.beginPath(); ctx.moveTo(0,-s*1.4); ctx.lineTo(s*0.9,s); ctx.lineTo(0,s*0.6); ctx.lineTo(-s*0.9,s); ctx.closePath(); ctx.fill(); ctx.restore();
-        ctx.fillStyle='rgba(207,250,254,0.9)'; ctx.font='12px system-ui, -apple-system, Segoe UI, Roboto, Arial'; ctx.fillText(`Score: ${score|0}`,12,18); ctx.fillText(`Best: ${high|0}`,12,34);
-        if(gameOver){ ctx.fillStyle='rgba(2,6,23,0.7)'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#c8f5ff'; ctx.font='bold 20px system-ui, Segoe UI, Arial'; ctx.textAlign='center'; ctx.fillText('Crashed!',cx,cy-10); ctx.font='14px system-ui'; ctx.fillText('Click or press Space to retry',cx,cy+16); ctx.textAlign='left'; }
+        drawRails();
+        obstacles.sort((a,b)=>b.z-a.z); for(const o of obstacles){ drawBlock(o); }
+        ctx.save(); const sp = projectPoint(ship.x, ship.y, ship.z); ctx.translate(sp.x, sp.y); const tilt=(ship.x/MAX_OFFSET)*0.25; ctx.rotate(tilt); const shipScale = Math.min(W,H)/640; const sw=120*shipScale, sh=80*shipScale; if(shipReady){ ctx.drawImage(shipImg,-sw/2,-sh/2,sw,sh);} else { ctx.shadowColor='rgba(56,189,248,0.9)'; ctx.shadowBlur=20; ctx.fillStyle='#7ef9c6'; const s=14; ctx.beginPath(); ctx.moveTo(0,-s*1.4); ctx.lineTo(s*0.9,s); ctx.lineTo(0,s*0.6); ctx.lineTo(-s*0.9,s); ctx.closePath(); ctx.fill(); } ctx.restore();
       }
 
       let last=performance.now();
