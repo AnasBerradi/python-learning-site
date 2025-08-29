@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planet Python • Account</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body{ margin:0; font-family: Inter, system-ui, Arial, sans-serif; background: #0b1120; color:#e5e7eb; }
+    a{ color:inherit; text-decoration:none }
+    .header{ display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid rgba(148,163,184,.12); background: #0b1220; }
+    .brand{ display:flex; align-items:center; gap:10px }
+    .brand img{ width:32px; height:32px }
+    .container{ max-width:920px; margin: 40px auto; padding: 0 20px; display:grid; grid-template-columns: 1fr 1fr; gap:20px }
+    .card{ border:1px solid rgba(148,163,184,.16); background: rgba(2,6,23,.7); border-radius:12px; padding:18px }
+    .card h2{ margin:0 0 10px; font-size:20px }
+    label{ display:block; margin:10px 0 6px; color:#cbd5e1 }
+    input{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(148,163,184,.3); background:#0b1328; color:#e5e7eb }
+    button{ margin-top:10px; padding:10px 14px; border-radius:10px; border:1px solid rgba(56,189,248,.45); background:linear-gradient(180deg, rgba(56,189,248,.22), rgba(56,189,248,.08)); color:#e0f2fe; font-weight:600 }
+    .muted{ color:#94a3b8; font-size:14px }
+    .row{ display:flex; gap:10px; align-items:center; justify-content:space-between }
+    .pill{ border:1px solid rgba(148,163,184,.25); border-radius:999px; padding:4px 10px; color:#cbd5e1 }
+    .alert{ margin-top:8px; font-size:14px }
+    .success{ color:#22c55e }
+    .error{ color:#ef4444 }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <img src="assets/planet-python-logo-neon.svg" alt="Planet Python" />
+      <strong>Planet Python</strong>
+    </div>
+    <nav>
+      <a href="index.html" class="pill">Home</a>
+      <a href="learn.html" class="pill">Start Learning</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Sign In</h2>
+      <p class="muted">Sign in to sync your progress across devices.</p>
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" type="email" placeholder="you@example.com" />
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" placeholder="••••••••" />
+      <button id="loginBtn">Sign In</button>
+      <div id="loginAlert" class="alert"></div>
+    </section>
+
+    <section class="card">
+      <h2>Create Account</h2>
+      <p class="muted">No email verification here—demo mode only.</p>
+      <label for="regName">Name</label>
+      <input id="regName" type="text" placeholder="Ada" />
+      <label for="regEmail">Email</label>
+      <input id="regEmail" type="email" placeholder="ada@example.com" />
+      <label for="regPassword">Password</label>
+      <input id="regPassword" type="password" placeholder="Choose a password" />
+      <button id="registerBtn">Create Account</button>
+      <div id="regAlert" class="alert"></div>
+    </section>
+
+    <section class="card" style="grid-column: 1 / -1">
+      <div class="row">
+        <div>
+          <div><strong>Signed in as:</strong> <span id="whoami">Guest</span></div>
+          <div class="muted">Progress is saved per account on this device.</div>
+        </div>
+        <div>
+          <button id="signOutBtn" style="border-color:#ef4444;background:linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.08));">Sign Out</button>
+          <a class="pill" href="learn.html">Go to Learning World →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="grid-column: 1 / -1">
+      <h2>Your Progress (this device)</h2>
+      <div class="row">
+        <div>XP: <span id="progXp">0</span> • Coins: <span id="progCoins">0</span></div>
+        <div>
+          <button id="refreshProg">Refresh</button>
+          <button id="clearProg" style="border-color:#ef4444;background:linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.08));">Clear Progress</button>
+        </div>
+      </div>
+      <pre id="progDump" style="white-space:pre-wrap; margin-top:10px; background:#0b1328; padding:12px; border-radius:10px; border:1px solid rgba(148,163,184,.2);"></pre>
+    </section>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script>
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
+    const loginAlert = document.getElementById('loginAlert');
+    const regAlert = document.getElementById('regAlert');
+    const whoami = document.getElementById('whoami');
+
+    const progXp = document.getElementById('progXp');
+    const progCoins = document.getElementById('progCoins');
+    const progDump = document.getElementById('progDump');
+
+    function updateHeader(){
+      const u = Auth.getUser();
+      whoami.textContent = u ? `${u.name} <${u.email}>` : 'Guest';
+      renderProgress();
+    }
+
+    function renderProgress(){
+      const data = Auth.loadProgress();
+      if(!data){ progXp.textContent = '0'; progCoins.textContent = '0'; progDump.textContent = 'No saved progress for this account.'; return; }
+      progXp.textContent = data.xp || 0;
+      progCoins.textContent = data.coins || 0;
+      progDump.textContent = JSON.stringify(data, null, 2);
+    }
+
+    loginBtn.addEventListener('click', ()=>{
+      loginAlert.textContent = '';
+      try{
+        Auth.login({ email: document.getElementById('loginEmail').value.trim(), password: document.getElementById('loginPassword').value });
+        loginAlert.textContent = 'Signed in successfully.'; loginAlert.className = 'alert success';
+        updateHeader();
+      }catch(e){ loginAlert.textContent = e.message; loginAlert.className = 'alert error'; }
+    });
+
+    registerBtn.addEventListener('click', ()=>{
+      regAlert.textContent = '';
+      try{
+        Auth.register({ name: document.getElementById('regName').value.trim(), email: document.getElementById('regEmail').value.trim(), password: document.getElementById('regPassword').value });
+        regAlert.textContent = 'Account created & signed in.'; regAlert.className = 'alert success';
+        updateHeader();
+      }catch(e){ regAlert.textContent = e.message; regAlert.className = 'alert error'; }
+    });
+
+    signOutBtn.addEventListener('click', ()=>{ Auth.logout(); updateHeader(); });
+    document.getElementById('refreshProg').addEventListener('click', renderProgress);
+    document.getElementById('clearProg').addEventListener('click', ()=>{
+      const u = Auth.getUser();
+      if(!u){ alert('Not signed in.'); return; }
+      try{ localStorage.removeItem('pp_progress:' + u.email); }catch(_){ }
+      renderProgress();
+    });
+
+    updateHeader();
+  </script>
+</body>
+</html>

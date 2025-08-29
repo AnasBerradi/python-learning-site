@@ -408,11 +408,19 @@
       if(next){ next.unlocked = true; progress.unlocked.add(next.id); }
     }
     updateHud();
+    // Persist if auth layer is present
+    if(window.Auth && typeof window.Auth.saveProgress === 'function'){
+      try{ window.Auth.saveProgress(exportProgress()); }catch(_){ }
+    }
   }
 
   function addReward(xp=10, coins=5){
     progress.xp += xp; progress.coins += coins; updateHud();
     toast(`+${xp} XP  +${coins} coins`);
+    // Persist if auth layer is present
+    if(window.Auth && typeof window.Auth.saveProgress === 'function'){
+      try{ window.Auth.saveProgress(exportProgress()); }catch(_){ }
+    }
   }
 
   function updateHud(){
@@ -420,6 +428,33 @@
     const cEl = document.getElementById('coins');
     if(xpEl) xpEl.textContent = `XP: ${progress.xp}`;
     if(cEl) cEl.textContent = `Coins: ${progress.coins}`;
+  }
+
+  // Import/export helpers for progress persistence
+  function exportProgress(){
+    return {
+      unlocked: Array.from(progress.unlocked),
+      completed: Array.from(progress.completed),
+      xp: progress.xp,
+      coins: progress.coins,
+    };
+  }
+  function importProgress(data){
+    if(!data) return;
+    try{
+      progress.unlocked.clear();
+      progress.completed.clear();
+      (data.unlocked || [1]).forEach(id=> progress.unlocked.add(id));
+      (data.completed || []).forEach(id=> progress.completed.add(id));
+      progress.xp = data.xp || 0;
+      progress.coins = data.coins || 0;
+      // reflect into nodes
+      nodes.forEach(n=>{
+        n.unlocked = progress.unlocked.has(n.id);
+        n.completed = progress.completed.has(n.id);
+      });
+      updateHud();
+    }catch(_){ /* ignore */ }
   }
 
   function toast(msg){
@@ -434,6 +469,8 @@
     goToNodeById: (id)=>{
       const n = nodes.find(nn=>nn.id===id && nn.unlocked);
       if(n) goToNode(n);
-    }
+    },
+    exportProgress,
+    importProgress,
   };
 })();
