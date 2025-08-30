@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planet Python • Our Team</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body{ margin:0; font-family: Inter, system-ui, Arial, sans-serif; background:#0b1120; color:#e5e7eb }
+    .lp-header{ display:flex; align-items:center; justify-content:space-between; padding:20px 28px; border-bottom:1px solid rgba(148,163,184,.12) }
+    .lp-brand{ display:flex; align-items:center; gap:12px }
+    .lp-brand img{ width:36px; height:36px; filter: drop-shadow(0 0 8px rgba(56,189,248,.5)) }
+    .lp-brand span{ font-weight:700; letter-spacing:.2px }
+    .lp-cta a{ display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border:1px solid rgba(148,163,184,.25); border-radius:10px; background:linear-gradient(180deg, rgba(56,189,248,.12), rgba(56,189,248,.04)); color:#cffafe }
+    .lp-cta a:hover{ border-color: rgba(56,189,248,.5) }
+    .team-grid{ padding: 28px; display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:16px }
+    .member{ padding:14px; border-radius:12px; border:1px solid rgba(148,163,184,.16); background:linear-gradient(180deg, rgba(30,41,59,.6), rgba(2,6,23,.6)) }
+    .member h3{ margin:6px 0 8px }
+    .footer{ padding:26px 28px; color:#94a3b8; border-top:1px solid rgba(148,163,184,.12) }
+  </style>
+</head>
+<body>
+  <header class="lp-header">
+    <div class="lp-brand">
+      <a href="index.html" aria-label="Back to Home"><img src="assets/planet-python-logo-neon.svg" alt="Planet Python" /></a>
+      <span>Planet Python</span>
+    </div>
+    <nav class="lp-cta">
+      <a href="learn.html" title="Start Learning">Start Learning</a>
+      <a href="account.html" title="Sign In or Register">Sign In</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="team-grid">
+      <div class="member">
+        <h3>Saadan Mohamed Yahya (欣活)</h3>
+        <p>Role: CEO & CIO | Age: 19</p>
+        <p>Leads the team’s vision and strategy while managing the technical direction of our e-learning platform. Passionate about computer science, programming, and problem-solving, with a focus on making learning accessible and engaging for everyone.</p>
+      </div>
+      <div class="member">
+        <h3>Team Member 2</h3>
+        <p>Role: Game Design & UX</p>
+      </div>
+      <div class="member">
+        <h3>Team Member 3</h3>
+        <p>Role: Curriculum & Content</p>
+      </div>
+      <div class="member">
+        <h3>Team Member 4</h3>
+        <p>Role: QA & Community</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">© <span id="year"></span> Planet Python Team • <a href="learn.html">Start Learning</a></footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planet Python • Our Team</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body{ margin:0; font-family: Inter, system-ui, Arial, sans-serif; background:#0b1120; color:#e5e7eb }
+    .lp-header{ display:flex; align-items:center; justify-content:space-between; padding:20px 28px; border-bottom:1px solid rgba(148,163,184,.12) }
+    .lp-brand{ display:flex; align-items:center; gap:12px }
+    .lp-brand img{ width:36px; height:36px; filter: drop-shadow(0 0 8px rgba(56,189,248,.5)) }
+    .lp-brand span{ font-weight:700; letter-spacing:.2px }
+    .lp-cta a{ display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border:1px solid rgba(148,163,184,.25); border-radius:10px; background:linear-gradient(180deg, rgba(56,189,248,.12), rgba(56,189,248,.04)); color:#cffafe }
+    .lp-cta a:hover{ border-color: rgba(56,189,248,.5) }
+    .team-grid{ padding: 50px 28px; display:grid; place-items:center; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:30px; perspective:1200px }
+     .member{ position:relative; width:280px; height:360px; cursor:pointer; transition: transform .5s ease }
+     .member:hover{ transform: translateY(-40px) scale(1.1) translateZ(80px); z-index:10 }
+     .card-inner{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition: transform .8s ease }
+     .member:hover .card-inner{ transform: rotateY(180deg) }
+     .card-face{ position:absolute; width:100%; height:100%; backface-visibility:hidden; -webkit-backface-visibility:hidden; padding:18px; border-radius:18px; border:1px solid rgba(148,163,184,.2); background:linear-gradient(145deg, rgba(30,41,59,.85), rgba(2,6,23,.9)); box-shadow: 0 8px 32px rgba(0,0,0,.3); display:flex; flex-direction:column; align-items:center; text-align:center }
+     .card-front{ transform: rotateY(0deg); }
+     .card-back{ transform: rotateY(180deg); background:linear-gradient(145deg, rgba(56,189,248,.15), rgba(14,165,233,.05)); border-color: rgba(56,189,248,.4) }
+     .photo{ width:140px; height:140px; object-fit:cover; border-radius:50%; border:3px solid rgba(56,189,248,.3); margin-bottom:16px; filter: drop-shadow(0 4px 12px rgba(56,189,248,.2)) }
+     .photo.svg-fallback{ border-radius:12px; padding:20px; background:rgba(56,189,248,.1) }
+     .card-face h3{ margin:8px 0 6px; font-size:1.2em; font-weight:600; color:#ffffff }
+     .card-face p{ color:#cbd5e1; margin:4px 0; line-height:1.4 }
+    .footer{ padding:26px 28px; color:#94a3b8; border-top:1px solid rgba(148,163,184,.12) }
+  </style>
+</head>
+<body>
+  <header class="lp-header">
+    <div class="lp-brand">
+      <a href="index.html" aria-label="Back to Home"><img src="assets/planet-python-logo-neon.svg" alt="Planet Python" /></a>
+      <span>Planet Python</span>
+    </div>
+    <nav class="lp-cta">
+      <a href="learn.html" title="Start Learning">Start Learning</a>
+      <a href="account.html" title="Sign In or Register">Sign In</a>
+    </nav>
+  </header>
+
+  <main>
+     <section class="team-grid" aria-label="Team members carousel">
+       <div class="member" tabindex="0">
+         <div class="card-inner">
+           <div class="card-face card-front">
+             <img class="photo" src="assets/team/yahya.jpg" alt="Saadan Mohamed Yahya" loading="lazy" onerror="this.src='assets/python-mark-neon.svg'; this.classList.add('svg-fallback');" />
+             <h3>Saadan Mohamed Yahya (欣活)</h3>
+             <p>CEO & CIO</p>
+           </div>
+           <div class="card-face card-back">
+             <h3>About Yahya</h3>
+             <p>Leads the product vision and the platform’s technical direction, with a passion for computer science and making learning accessible for everyone.</p>
+           </div>
+         </div>
+       </div>
+
+       <!-- Anas Berradi (Lead Programmer) -->
+       <div class="member" tabindex="0">
+         <div class="card-inner">
+           <div class="card-face card-front">
+             <img class="photo" src="assets/team/anas.jpg" alt="Anas Berradi (奕辰)" loading="lazy" onerror="this.src='assets/python-mark-neon.svg'; this.classList.add('svg-fallback');" />
+             <h3>Anas Berradi (奕辰)</h3>
+             <p>Lead Programmer</p>
+           </div>
+           <div class="card-face card-back">
+             <h3>About Anas</h3>
+             <p>Hi, my name is Anas Berradi. I am the Lead Programmer of our team, responsible for developing and optimizing the e-learning platform we are building. My role focuses on writing clean and scalable code, and ensuring smooth integration of features. I am passionate about artificial intelligence, problem-solving, and creating technology that improves the way people learn and interact with knowledge.</p>
+           </div>
+         </div>
+       </div>
+
+
+        <!-- Faija Jui (Writer & Tester) -->
+        <div class="member" tabindex="0">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img class="photo" src="assets/team/faija.jpg" alt="Faija Jui" loading="lazy" onerror="this.src='assets/python-mark-neon.svg'; this.classList.add('svg-fallback');" />
+              <h3>Faija Jui</h3>
+              <p>Writer & Tester</p>
+            </div>
+            <div class="card-face card-back">
+              <h3>About Faija</h3>
+              <p>Writes and maintains clear, up-to-date documentation (logs and meeting notes). Thoroughly tests the website to surface issues early and improve overall quality before launch.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tugsoh Tugsjavkhlan (程华腾) - Designer -->
+        <div class="member" tabindex="0">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img class="photo" src="assets/team/tugsoh.jpg" alt="Tugsoh Tugsjavkhlan (程华腾)" loading="lazy" onerror="this.src='assets/python-mark-neon.svg'; this.classList.add('svg-fallback');" />
+              <h3>Tugsoh Tugsjavkhlan (程华腾)</h3>
+              <p>Designer</p>
+            </div>
+            <div class="card-face card-back">
+              <h3>About Tugsoh</h3>
+              <p>The lion doesnt bother with presenting himself</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Misheel Munkhjargal - Designer -->
+        <div class="member" tabindex="0">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img class="photo" src="assets/team/misheel.jpg" alt="Misheel Munkhjargal" loading="lazy" onerror="this.src='assets/python-mark-neon.svg'; this.classList.add('svg-fallback');" />
+              <h3>Misheel Munkhjargal</h3>
+              <p>Designer</p>
+            </div>
+            <div class="card-face card-back">
+              <h3>About Misheel</h3>
+              <p>
+                Country: Mongolia<br/>
+                Age: 20<br/>
+                Major: Computer Science<br/>
+                Responsible for team logo, video, and other design-related projects.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Munkhireedui Batmurun (巴特木) - Secondary Programmer -->
+        <div class="member" tabindex="0">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img class="photo" src="assets/team/munkhireedui.jpg" alt="Munkhireedui Batmurun (巴特木)" loading="lazy" onerror="this.src='assets/python-mark-neon.svg'; this.classList.add('svg-fallback');" />
+              <h3>Munkhireedui Batmurun (巴特木)</h3>
+              <p>Secondary Programmer</p>
+            </div>
+            <div class="card-face card-back">
+              <h3>About Munkhireedui</h3>
+              <p>Supports the engineering effort as the secondary programmer, helping implement features and maintain code quality.</p>
+            </div>
+          </div>
+        </div>
+     </section>
+   </main>
+
+  <footer class="footer">© <span id="year"></span> Planet Python Team • <a href="learn.html">Start Learning</a></footer>
+
+  <script>
+     document.getElementById('year').textContent = new Date().getFullYear();
+     const cards = Array.from(document.querySelectorAll('.team-grid .member'));
+
+     // Bring hovered/focused card forward as the main card; restore on leave/blur
+     function activate(card){
+       cards.forEach((c,i)=>{
+         if(c===card){
+           c.style.transform = 'translateY(-40px) scale(1.1) translateZ(80px)';
+           c.classList.add('active');
+         } else {
+           const offset = (i - cards.indexOf(card)) * 8;
+           c.style.transform = `translateY(${Math.abs(offset)*2}px) rotateY(${offset}deg) translateZ(${60 - Math.abs(offset)*6}px)`;
+           c.classList.remove('active');
+         }
+       });
+     }
+     function reset(){ cards.forEach(c=>{ c.style.transform=''; c.classList.remove('active'); }); }
+
+     cards.forEach(card=>{
+       card.addEventListener('mouseenter', ()=>activate(card));
+       card.addEventListener('mouseleave', reset);
+       card.addEventListener('focus', ()=>activate(card));
+       card.addEventListener('blur', reset);
+     });
+   </script>
+</body>
+</html>
