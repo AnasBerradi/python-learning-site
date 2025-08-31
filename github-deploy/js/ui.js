@@ -47,6 +47,9 @@
   let pyodideLoading = null;
   let consoleInitialized = false;
   let stageWordSuggestions = [];
+  // Add flags to prevent duplicate announcements
+  let pyodideReadyAnnounced = false;
+  let pyodideEchoRan = false;
 
   // Instrument global errors to surface issues in the in-page console
   window.addEventListener('error', (e)=>{
@@ -96,6 +99,48 @@
     if(cls) line.className = cls;
     consoleOutput.appendChild(line);
     consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  }
+
+  // Start background warmup immediately on page load (non-blocking, no UI disruption)
+  const startPyWarmup = () => warmupPyodide({ background: true }).catch(()=>{});
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => {
+      if('requestIdleCallback' in window){
+        try { requestIdleCallback(() => startPyWarmup(), { timeout: 10000 }); }
+        catch(_){ setTimeout(startPyWarmup, 50); }
+      } else {
+        setTimeout(startPyWarmup, 50);
+      }
+    });
+  } else {
+    if('requestIdleCallback' in window){
+      try { requestIdleCallback(() => startPyWarmup(), { timeout: 10000 }); }
+      catch(_){ setTimeout(startPyWarmup, 50); }
+    } else {
+      setTimeout(startPyWarmup, 50);
+    }
+  }
+
+  // Ensure Pyodide loader with timeout and stdout wiring
+  async function ensurePyodideWithTimeout(timeoutMs = 45000){
+    if(pyodide){ return pyodide; }
+    if(!pyodideLoading){
+      if(typeof loadPyodide !== 'function'){
+        throw new Error('Pyodide script not loaded');
+      }
+      pyodideLoading = loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/' });
+    }
+    const withTimeout = new Promise((resolve, reject)=>{
+      const t = setTimeout(()=> reject(new Error('Timed out loading Python runtime')), timeoutMs);
+      pyodideLoading.then(pyo=>{ clearTimeout(t); resolve(pyo); }).catch(err=>{ clearTimeout(t); reject(err); });
+    });
+    pyodide = await withTimeout;
+    try {
+      // Wire stdout/stderr to in-page console
+      if(pyodide?.setStdout){ pyodide.setStdout({ batched: (s)=>{ if(s){ appendToConsole(s.trim()); } } }); }
+      if(pyodide?.setStderr){ pyodide.setStderr({ batched: (s)=>{ if(s){ appendToConsole(s.trim(), 'glow-red'); } } }); }
+    } catch(_) { /* ignore wiring issues */ }
+    return pyodide;
   }
 
   // Tabs
@@ -307,16 +352,19 @@
     // Initialize and focus console
     initConsoleOnce();
     seedStageHints(currentStage);
-    // Warm up pyodide in the background on first open
-    warmupPyodide();
+    // Background warmup is triggered globally at page load; no need to duplicate it here.
     if(consoleInput){ consoleInput.focus(); }
   }
 
-  async function warmupPyodide(){
+  // Modify: warmupPyodide supports background mode
+  async function warmupPyodide(opts = {}){
+    const background = !!opts.background;
     try {
       if(!pyodide){
-        setConsoleStatus('Loading Python runtime… (first load may take 10–20s)');
-        runCodeBtn && (runCodeBtn.disabled = true);
+        if(!background){
+          setConsoleStatus('Loading Python runtime… (first load may take 10–20s)');
+          runCodeBtn && (runCodeBtn.disabled = true);
+        }
         const pyo = await ensurePyodideWithTimeout(60000);
         try {
           if(!pyodideEchoRan){
@@ -328,19 +376,23 @@
             appendToConsole('Python runtime ready.', 'glow-green');
           }
         } catch(_e) { /* ignore */ }
-        setConsoleStatus('Try: print("Hello")');
+        if(!background){ setConsoleStatus('Try: print("Hello")'); }
       }
     } catch(e){
       const msg = String(e||'');
       if(msg.includes('Timed out')){
-        setConsoleStatus('Python runtime is still loading… using fast mode for now. It will switch when ready.');
-        appendToConsole('Python runtime is still loading… falling back temporarily.');
+        if(!background){
+          setConsoleStatus('Python runtime is still loading… using fast mode for now. It will switch when ready.');
+          appendToConsole('Python runtime is still loading… falling back temporarily.');
+        }
       } else {
-        setConsoleStatus('Failed to load Python runtime. Check your network and try again.');
-        appendToConsole('Error loading Python runtime: '+ msg, 'glow-red');
+        if(!background){
+          setConsoleStatus('Failed to load Python runtime. Check your network and try again.');
+          appendToConsole('Error loading Python runtime: '+ msg, 'glow-red');
+        }
       }
     } finally {
-      runCodeBtn && (runCodeBtn.disabled = false);
+      if(!background){ runCodeBtn && (runCodeBtn.disabled = false); }
     }
   }
 

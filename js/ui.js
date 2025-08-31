@@ -51,7 +51,77 @@
   let pyodideReadyAnnounced = false;
   let pyodideEchoRan = false;
 
-  // Add: Ensure Pyodide loader with timeout and stdout wiring
+  // Instrument global errors to surface issues in the in-page console
+  window.addEventListener('error', (e)=>{
+    try { appendToConsole('JS Error: '+ (e?.message || e?.error?.message || String(e)), 'glow-red'); } catch(_){}
+  });
+  window.addEventListener('unhandledrejection', (e)=>{
+    try { appendToConsole('Unhandled Promise Rejection: '+ (e?.reason?.message || String(e?.reason)), 'glow-red'); } catch(_){}
+  });
+
+  // Fallback: delegated handlers to ensure Run/Enter work even if initConsoleOnce() hasn't bound yet
+  document.addEventListener('click', (e)=>{
+    const t = e.target;
+    if(!t) return;
+    if(t.id === 'runCode'){
+      if(!consoleInitialized){ appendToConsole('Run clicked (delegated)…'); initConsoleOnce(); runConsoleCode(); }
+      // if initialized, the direct handler will take over
+    } else if(t.id === 'clearConsole'){
+      if(!consoleInitialized){ initConsoleOnce(); }
+      if(consoleOutput){ consoleOutput.textContent=''; }
+      if(consoleInput){ consoleInput.value=''; consoleInput.focus(); }
+    }
+  });
+  document.addEventListener('keydown', (e)=>{
+    const t = e.target;
+    if(!t) return;
+    if(t.id === 'consoleInput'){
+      if(!consoleInitialized){ initConsoleOnce(); }
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        runConsoleCode();
+      } else if(e.key === 'Tab'){
+        const applied = applyAutocomplete();
+        if(applied){ e.preventDefault(); }
+      }
+    }
+  });
+
+  // Helper: update console status/hints
+  function setConsoleStatus(msg){
+    if(consoleHints){ consoleHints.textContent = msg; }
+  }
+
+  function appendToConsole(text, cls){
+    if(!consoleOutput) return;
+    const line = document.createElement('div');
+    line.textContent = text;
+    if(cls) line.className = cls;
+    consoleOutput.appendChild(line);
+    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  }
+
+  // Start background warmup immediately on page load (non-blocking, no UI disruption)
+  const startPyWarmup = () => warmupPyodide({ background: true }).catch(()=>{});
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => {
+      if('requestIdleCallback' in window){
+        try { requestIdleCallback(() => startPyWarmup(), { timeout: 10000 }); }
+        catch(_){ setTimeout(startPyWarmup, 50); }
+      } else {
+        setTimeout(startPyWarmup, 50);
+      }
+    });
+  } else {
+    if('requestIdleCallback' in window){
+      try { requestIdleCallback(() => startPyWarmup(), { timeout: 10000 }); }
+      catch(_){ setTimeout(startPyWarmup, 50); }
+    } else {
+      setTimeout(startPyWarmup, 50);
+    }
+  }
+
+  // Ensure Pyodide loader with timeout and stdout wiring
   async function ensurePyodideWithTimeout(timeoutMs = 45000){
     if(pyodide){ return pyodide; }
     if(!pyodideLoading){
@@ -71,19 +141,6 @@
       if(pyodide?.setStderr){ pyodide.setStderr({ batched: (s)=>{ if(s){ appendToConsole(s.trim(), 'glow-red'); } } }); }
     } catch(_) { /* ignore wiring issues */ }
     return pyodide;
-  }
-
-  function setConsoleStatus(msg){
-    if(consoleHints){ consoleHints.textContent = msg; }
-  }
-
-  function appendToConsole(text, cls){
-    if(!consoleOutput) return;
-    const line = document.createElement('div');
-    line.textContent = text;
-    if(cls) line.className = cls;
-    consoleOutput.appendChild(line);
-    consoleOutput.scrollTop = consoleOutput.scrollHeight;
   }
 
   // Tabs
@@ -295,16 +352,19 @@
     // Initialize and focus console
     initConsoleOnce();
     seedStageHints(currentStage);
-    // Warm up pyodide in the background on first open
-    warmupPyodide();
+    // Background warmup is triggered globally at page load; no need to duplicate it here.
     if(consoleInput){ consoleInput.focus(); }
   }
 
-  async function warmupPyodide(){
+  // Modify: warmupPyodide supports background mode
+  async function warmupPyodide(opts = {}){
+    const background = !!opts.background;
     try {
       if(!pyodide){
-        setConsoleStatus('Loading Python runtime… (first load may take 10–20s)');
-        runCodeBtn && (runCodeBtn.disabled = true);
+        if(!background){
+          setConsoleStatus('Loading Python runtime… (first load may take 10–20s)');
+          runCodeBtn && (runCodeBtn.disabled = true);
+        }
         const pyo = await ensurePyodideWithTimeout(60000);
         try {
           if(!pyodideEchoRan){
@@ -316,19 +376,23 @@
             appendToConsole('Python runtime ready.', 'glow-green');
           }
         } catch(_e) { /* ignore */ }
-        setConsoleStatus('Try: print("Hello")');
+        if(!background){ setConsoleStatus('Try: print("Hello")'); }
       }
     } catch(e){
       const msg = String(e||'');
       if(msg.includes('Timed out')){
-        setConsoleStatus('Python runtime is still loading… using fast mode for now. It will switch when ready.');
-        appendToConsole('Python runtime is still loading… falling back temporarily.');
+        if(!background){
+          setConsoleStatus('Python runtime is still loading… using fast mode for now. It will switch when ready.');
+          appendToConsole('Python runtime is still loading… falling back temporarily.');
+        }
       } else {
-        setConsoleStatus('Failed to load Python runtime. Check your network and try again.');
-        appendToConsole('Error loading Python runtime: '+ msg, 'glow-red');
+        if(!background){
+          setConsoleStatus('Failed to load Python runtime. Check your network and try again.');
+          appendToConsole('Error loading Python runtime: '+ msg, 'glow-red');
+        }
       }
     } finally {
-      runCodeBtn && (runCodeBtn.disabled = false);
+      if(!background){ runCodeBtn && (runCodeBtn.disabled = false); }
     }
   }
 
