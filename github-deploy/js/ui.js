@@ -587,9 +587,21 @@
     return false;
   }
 
-  function runPythonCode(code){
+  async function runPythonCode(code){
     try {
       setConsoleStatus('Running Python code...');
+      // Prefer real Python via Pyodide if available/loads fast; otherwise fallback
+      try {
+        const pyo = await ensurePyodideWithTimeout(5000);
+        const result = await pyo.runPythonAsync(code);
+        if(result !== undefined && result !== null){
+          appendToConsole(String(result));
+        }
+        setConsoleStatus('Ready for next command');
+        return;
+      } catch(_e){
+        // Fallback to fast JS-based interpreter
+      }
       const result = executeEnhancedPython(code);
       setConsoleStatus('Ready for next command');
     } catch(e){

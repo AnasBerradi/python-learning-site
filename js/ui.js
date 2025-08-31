@@ -572,7 +572,7 @@
     return false;
   }
 
-  function runPythonCode(code){
+  async function runPythonCode(code){
     try {
       setConsoleStatus('Running Python code...');
       // Prefer real Python via Pyodide if available/loads fast; otherwise fallback
