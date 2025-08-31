@@ -47,6 +47,9 @@
   let pyodideLoading = null;
   let consoleInitialized = false;
   let stageWordSuggestions = [];
+  // Add flags to prevent duplicate announcements
+  let pyodideReadyAnnounced = false;
+  let pyodideEchoRan = false;
 
   // Add: Ensure Pyodide loader with timeout and stdout wiring
   async function ensurePyodideWithTimeout(timeoutMs = 45000){
@@ -302,16 +305,28 @@
       if(!pyodide){
         setConsoleStatus('Loading Python runtime… (first load may take 10–20s)');
         runCodeBtn && (runCodeBtn.disabled = true);
-        const pyo = await ensurePyodideWithTimeout(45000);
+        const pyo = await ensurePyodideWithTimeout(60000);
         try {
-          await pyo.runPythonAsync('import sys\nprint("Python "+sys.version.split()[0]+" ready")');
-          appendToConsole('Python runtime ready.', 'glow-green');
+          if(!pyodideEchoRan){
+            pyodideEchoRan = true;
+            await pyo.runPythonAsync('import sys\nprint("Python "+sys.version.split()[0]+" ready")');
+          }
+          if(!pyodideReadyAnnounced){
+            pyodideReadyAnnounced = true;
+            appendToConsole('Python runtime ready.', 'glow-green');
+          }
         } catch(_e) { /* ignore */ }
         setConsoleStatus('Try: print("Hello")');
       }
     } catch(e){
-      setConsoleStatus('Failed to load Python runtime. Check your network and try again.');
-      appendToConsole('Error loading Python runtime: '+ String(e), 'glow-red');
+      const msg = String(e||'');
+      if(msg.includes('Timed out')){
+        setConsoleStatus('Python runtime is still loading… using fast mode for now. It will switch when ready.');
+        appendToConsole('Python runtime is still loading… falling back temporarily.');
+      } else {
+        setConsoleStatus('Failed to load Python runtime. Check your network and try again.');
+        appendToConsole('Error loading Python runtime: '+ msg, 'glow-red');
+      }
     } finally {
       runCodeBtn && (runCodeBtn.disabled = false);
     }
