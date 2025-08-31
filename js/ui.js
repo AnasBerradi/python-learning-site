@@ -48,43 +48,28 @@
   let consoleInitialized = false;
   let stageWordSuggestions = [];
 
-  // Instrument global errors to surface issues in the in-page console
-  window.addEventListener('error', (e)=>{
-    try { appendToConsole('JS Error: '+ (e?.message || e?.error?.message || String(e)), 'glow-red'); } catch(_){}
-  });
-  window.addEventListener('unhandledrejection', (e)=>{
-    try { appendToConsole('Unhandled Promise Rejection: '+ (e?.reason?.message || String(e?.reason)), 'glow-red'); } catch(_){}
-  });
-
-  // Fallback: delegated handlers to ensure Run/Enter work even if initConsoleOnce() hasn't bound yet
-  document.addEventListener('click', (e)=>{
-    const t = e.target;
-    if(!t) return;
-    if(t.id === 'runCode'){
-      if(!consoleInitialized){ appendToConsole('Run clicked (delegated)…'); initConsoleOnce(); runConsoleCode(); }
-      // if initialized, the direct handler will take over
-    } else if(t.id === 'clearConsole'){
-      if(!consoleInitialized){ initConsoleOnce(); }
-      if(consoleOutput){ consoleOutput.textContent=''; }
-      if(consoleInput){ consoleInput.value=''; consoleInput.focus(); }
-    }
-  });
-  document.addEventListener('keydown', (e)=>{
-    const t = e.target;
-    if(!t) return;
-    if(t.id === 'consoleInput'){
-      if(!consoleInitialized){ initConsoleOnce(); }
-      if(e.key === 'Enter'){
-        e.preventDefault();
-        runConsoleCode();
-      } else if(e.key === 'Tab'){
-        const applied = applyAutocomplete();
-        if(applied){ e.preventDefault(); }
+  // Add: Ensure Pyodide loader with timeout and stdout wiring
+  async function ensurePyodideWithTimeout(timeoutMs = 45000){
+    if(pyodide){ return pyodide; }
+    if(!pyodideLoading){
+      if(typeof loadPyodide !== 'function'){
+        throw new Error('Pyodide script not loaded');
       }
+      pyodideLoading = loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/' });
     }
-  });
+    const withTimeout = new Promise((resolve, reject)=>{
+      const t = setTimeout(()=> reject(new Error('Timed out loading Python runtime')), timeoutMs);
+      pyodideLoading.then(pyo=>{ clearTimeout(t); resolve(pyo); }).catch(err=>{ clearTimeout(t); reject(err); });
+    });
+    pyodide = await withTimeout;
+    try {
+      // Wire stdout/stderr to in-page console
+      if(pyodide?.setStdout){ pyodide.setStdout({ batched: (s)=>{ if(s){ appendToConsole(s.trim()); } } }); }
+      if(pyodide?.setStderr){ pyodide.setStderr({ batched: (s)=>{ if(s){ appendToConsole(s.trim(), 'glow-red'); } } }); }
+    } catch(_) { /* ignore wiring issues */ }
+    return pyodide;
+  }
 
-  // Helper: update console status/hints
   function setConsoleStatus(msg){
     if(consoleHints){ consoleHints.textContent = msg; }
   }
@@ -590,6 +575,18 @@
   function runPythonCode(code){
     try {
       setConsoleStatus('Running Python code...');
+      // Prefer real Python via Pyodide if available/loads fast; otherwise fallback
+      try {
+        const pyo = await ensurePyodideWithTimeout(5000);
+        const result = await pyo.runPythonAsync(code);
+        if(result !== undefined && result !== null){
+          appendToConsole(String(result));
+        }
+        setConsoleStatus('Ready for next command');
+        return;
+      } catch(_e){
+        // Fallback to fast JS-based interpreter
+      }
       const result = executeEnhancedPython(code);
       setConsoleStatus('Ready for next command');
     } catch(e){
