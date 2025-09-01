@@ -198,7 +198,7 @@ const STAGES = [
       `Slide 5 — Order of except blocks matters\n\ntry:\n    ...\nexcept LookupError:\n    ...\nexcept KeyError:\n    ...\n\nKeyError is a subclass of LookupError. Place specific exceptions BEFORE general ones; otherwise the specific block is never reached.`,
       `Slide 6 — else and finally\n\ntry:\n    work()\nexcept Exception:\n    log_err()\nelse:\n    print("no exceptions in try")\nfinally:\n    cleanup()\n\nelse runs only if try had no exception. finally always runs.`,
       `Slide 7 — Re-raising and preserving context\n\ntry:\n    risky()\nexcept ValueError:\n    # do something, then re-raise the same error\n    raise\n\nUse bare raise inside except to re-raise the current exception and preserve its traceback.`,
-      `Slide 8 — Chained exceptions (raise from)\n\ntry:\n    parse()\nexcept ValueError as e:\n    raise RuntimeError("parse failed") from e\n\nThe new exception keeps a __cause__ pointing to the original error for context.`,
+      `Slide 8 — Chaining exceptions (raise from)\n\ntry:\n    parse()\nexcept ValueError as e:\n    raise RuntimeError("parse failed") from e\n\nThe new exception keeps a __cause__ pointing to the original error for context.`,
       `Slide 9 — Custom exceptions\n\nclass ConfigError(Exception):\n    pass\n\nRaising domain-specific exceptions improves clarity and error handling granularity.`,
       `Slide 10 — Context managers and exceptions\n\nwith open(path) as f:\n    data = f.read()\n# File is closed even if an exception occurs inside the with block.\n\nUse with to ensure resources are released.`,
       `Slide 11 — Don’t swallow exceptions silently\n\nBad:\nexcept Exception:\n    pass\n\nBetter:\nexcept Exception as e:\n    log(e); raise  # or handle explicitly`,
@@ -260,36 +260,57 @@ const STAGES = [
 ];
 
 // ------------------ Quiz Banks (20+ questions per topic) ------------------
-function qMC(question, choices, correct){ return { type:'mc', question, choices, correct }; }
+function qMC(question, choices, correct, code = null, explanation = null){ 
+  return { type:'mc', question, choices, correct, code, explanation }; 
+}
 
 function makeQ1(){
   const Q=[];
-  // Easy: literals and simple prints
-  const nums=[2,5,7,10,42]; nums.forEach((n,i)=>{
-    Q.push(qMC(`What will print? x = ${n}; print(x)`, [`x`, `${n}`, `"${n}"`, `error`], 1));
-  });
-  // Types of literals
-  Q.push(qMC('What is type of 3?', ['int','float','str','bool'], 0));
-  Q.push(qMC('What is type of 3.0?', ['int','float','str','bool'], 1));
-  Q.push(qMC('What is type of "Hi"?', ['int','float','str','bool'], 2));
-  Q.push(qMC('What is type of True?', ['int','float','str','bool'], 3));
-  // Conversions
-  Q.push(qMC('What is int("7")?', ['str','int 7','float 7.0','error'], 1));
-  Q.push(qMC('What is str(3.14)?', ['3.14','float','str','error'], 2));
-  Q.push(qMC('bool(0) is ...', ['True','False'], 1));
+  // Literals and their types
+  Q.push(qMC('type(3) is ...', ['int','float','str','bool'], 0, 
+  'x = 3\nprint(type(x))\nprint(type(x).__name__)', 
+  'The number 3 is an integer literal. Python automatically determines data types.'));
+Q.push(qMC('type(3.0) is ...', ['int','float','str','bool'], 1,
+  'x = 3.0\nprint(type(x))\nprint(x == 3)  # True, but different types',
+  'Adding .0 makes it a float, even though the value equals integer 3.'));
+Q.push(qMC('type("3") is ...', ['int','float','str','bool'], 2,
+  'x = "3"\nprint(type(x))\nprint(x + x)  # String concatenation, not addition',
+  'Quotes make it a string. Notice "3" + "3" = "33", not 6.'));
+Q.push(qMC('type(True) is ...', ['int','float','str','bool'], 3,
+  'x = True\nprint(type(x))\nprint(x + 1)  # True acts like 1 in math',
+  'True is a boolean, but it can behave like the integer 1 in calculations.'));
+  // isinstance vs type
+  Q.push(qMC('isinstance(True, int)?', ['True','False'], 0));
+  Q.push(qMC('type(True) == int?', ['True','False'], 1));
+  Q.push(qMC('True + True == ?', ['1','2','True','error'], 1));
+  Q.push(qMC('int(True) == ?', ['1','0','True','error'], 0));
+  // Division and floor division
+  Q.push(qMC('3/2 == ?', ['1','1.5','2','error'], 1,
+  'print(3/2)\nprint(type(3/2).__name__)',
+  'Single slash is true division: result is float 1.5.'));
+Q.push(qMC('3//2 == ?', ['1','1.5','2','error'], 0,
+  'print(3//2)\nprint(type(3//2).__name__)',
+  'Double slash is floor division: it drops the fractional part.'));
+Q.push(qMC('-3//2 == ?', ['-1','-2','1','error'], 1,
+  'print(-3//2)\nprint(-3/2)',
+  'Floor division floors toward negative infinity, so -1.5 floors to -2.'));
+Q.push(qMC('-3 % 2 == ?', ['-1','1','0','2'], 1,
+  'print(-3 % 2)\n# In Python, a % b has the sign of b',
+  'Modulo keeps the sign of the divisor; remainder is 1 so that (-3)//2 * 2 + 1 == -3.'));
+  // Conversions (pitfalls)
+  Q.push(qMC('int("03") == ?', ['3','3.0','"03"','error'], 0));
+  Q.push(qMC('int("3.0")', ['3','ValueError','3.0','0'], 1));
+  Q.push(qMC('float("nan") has type ...', ['int','float','str','bool'], 1));
+  // Truthiness
+  Q.push(qMC('bool([]) is ...', ['True','False'], 1));
+  Q.push(qMC('bool([0]) is ...', ['True','False'], 0));
   Q.push(qMC('bool("") is ...', ['True','False'], 1));
-  Q.push(qMC('bool("hello") is ...', ['True','False'], 0));
-  // Slightly harder: type after assignment
-  Q.push(qMC('x = "5"; type(x) is ...', ['int','str','float','bool'], 1));
-  Q.push(qMC('x = 5.0; type(x) is ...', ['int','float','str','bool'], 1));
-  // Trickier edge
-  Q.push(qMC('type(False) is ...', ['int','float','str','bool'], 3));
-  Q.push(qMC('type(42) is ...', ['int','float','str','bool'], 0));
-  // More conversions
-  Q.push(qMC('float(5) == ?', ['5','5.0','True','error'], 1));
-  Q.push(qMC('str(True) == ?', ['True','"True"','1','error'], 1));
-  Q.push(qMC('int(3.9) == ?', ['3','4','3.9','error'], 0));
-  while(Q.length<20){ Q.push(qMC('Which is a boolean literal?', ['"True"','True','1','"False"'], 1)); }
+  Q.push(qMC('bool("0") is ...', ['True','False'], 0));
+  Q.push(qMC('bool(None) is ...', ['True','False'], 1));
+  // Rounding behavior
+  Q.push(qMC('round(2.5) == ?', ['2','3','2.0','3.0'], 0));
+  Q.push(qMC('round(3.5) == ?', ['3','4','3.0','4.0'], 1));
+  while(Q.length<24){ Q.push(qMC('Which is a boolean literal?', ['"True"','True','1','"False"'], 1)); }
   return Q;
 }
 
@@ -324,29 +345,37 @@ function makeQ3(){
   Q.push(qMC('"Hello"[1:4] == ?', ['Hel','ell','llo'], 1));
   Q.push(qMC('len("Python") == ?', ['5','6','7'], 1));
   Q.push(qMC('"Py" + "thon" == ?', ['Pyth on','Python','Py-thon'], 1));
-  Q.push(qMC('"abc"*3 == ?', ['abcabcabc','abc3','aaabbbccc'], 0));
-  Q.push(qMC('"Hello"[0] == ?', ['H','e','o'], 0));
-  Q.push(qMC('"Hello"[-1] == ?', ['H','o','l'], 1));
-  Q.push(qMC('"Hello"[:2] == ?', ['He','el','lo'], 0));
-  Q.push(qMC('"Hello"[2:] == ?', ['He','llo','llo'], 2));
-  Q.push(qMC('"Hi".upper() == ?', ['HI','hi','Hi '], 0));
-  Q.push(qMC('"Hi".lower() == ?', ['HI','hi','Hi'], 1));
-  Q.push(qMC('"a,b,c".split(",")[1] == ?', ['a','b','c'], 1));
-  Q.push(qMC('"  x ".strip() == ?', ['"  x "','"x"','" x"'], 1));
-  Q.push(qMC('"hello".capitalize() == ?', ['Hello','HELLO','hello '], 0));
-  Q.push(qMC('"he" in "hello" ?', ['True','False'], 0));
-  Q.push(qMC('"z" in "hello" ?', ['True','False'], 1));
+  Q.push(qMC('"abc"*3 == ?', ['abcabcabc','abc3','aaabbbccc'], 0,
+  's = "abc"\nprint(s * 3)',
+  'Strings support repetition with *. For example, "ha" * 3 -> "hahaha".'));
+Q.push(qMC('"Hello"[0] == ?', ['H','e','o'], 0,
+  's = "Hello"\nprint(s[0])',
+  'Indexing starts at 0 in Python.'));
+Q.push(qMC('"Hello"[-1] == ?', ['H','o','l'], 1,
+  's = "Hello"\nprint(s[-1])',
+  'Negative indices count from the end; -1 is the last character.'));
+Q.push(qMC('"Hi".upper() == ?', ['HI','hi','Hi '], 0));
+Q.push(qMC('"Hi".lower() == ?', ['HI','hi','Hi'], 1));
+Q.push(qMC('"a,b,c".split(",")[1] == ?', ['a','b','c'], 1));
+Q.push(qMC('"  x ".strip() == ?', ['"  x "','"x"','" x"'], 1,
+  's = "  x "\nprint(s.strip())',
+  'strip() removes leading and trailing whitespace.'));
+Q.push(qMC('"hello".capitalize() == ?', ['Hello','HELLO','hello '], 0));
+Q.push(qMC('"he" in "hello" ?', ['True','False'], 0));
+Q.push(qMC('"z" in "hello" ?', ['True','False'], 1));
   while(Q.length<20){ Q.push(qMC('"Python"[1] == ?', ['P','y','t'], 1)); }
   return Q;
 }
 
 function makeQ4(){
   const Q=[];
-  Q.push(qMC('my=[10,20,30]; my[2]==?', ['10','20','30'], 2));
-  Q.push(qMC('my=[1,2,3]; len(my)==?', ['2','3','4'], 1));
-  Q.push(qMC('my=[1,2]; my.append(3); my==?', ['[1,2]','[1,2,3]','[3,2,1]'], 1));
+  Q.push(qMC('my=[1,2]; my.append(3); my==?', ['[1,2]','[1,2,3]','[3,2,1]'], 1,
+  'my=[1,2]\nmy.append(3)\nprint(my)',
+  'append adds an item to the end of the list.'));
   Q.push(qMC('t=(1,2); t[0]==?', ['1','2','error'], 0));
-  Q.push(qMC('t=(1,2); t[0]=9', ['works','error'], 1));
+  Q.push(qMC('t=(1,2); t[0]=9', ['works','error'], 1,
+    't=(1,2)\ntry:\n    t[0]=9\nexcept TypeError as e:\n    print("TypeError:", e)',
+    'Tuples are immutable; assigning to an index raises TypeError.'));
   Q.push(qMC('[1,2,3][0:2]==?', ['[1,2]','[2,3]','[1,2,3]'], 0));
   Q.push(qMC('[1,2,3][-1]==?', ['1','2','3'], 2));
   Q.push(qMC('2 in [1,2,3]?', ['True','False'], 0));
@@ -390,7 +419,9 @@ function makeQ6(){
 
 function makeQ7(){
   const Q=[];
-  Q.push(qMC('for i in range(3): print(i) prints', ['1 2 3','0 1 2','0 1 2 3'], 1));
+  Q.push(qMC('for i in range(3): print(i) prints', ['1 2 3','0 1 2','0 1 2 3'], 1,
+  'for i in range(3):\n    print(i, end=" ")',
+  'range(3) yields 0, 1, 2 — not including 3.'));
   Q.push(qMC('list(range(2,5))==?', ['[2,3,4]','[2,3,4,5]','[3,4,5]'], 0));
   Q.push(qMC('sum(range(4))==?', ['6','10','4'], 0));
   Q.push(qMC('while i<3: i+=1 runs how many times (i starts 0)?', ['2','3','4'], 1));
@@ -399,7 +430,9 @@ function makeQ7(){
   Q.push(qMC('range(1,6,2)==?', ['[1,3,5]','[1,2,3,4,5]','[2,4,6]'], 0));
   Q.push(qMC('len(list(range(5)))==?', ['4','5','6'], 1));
   Q.push(qMC('for s in "hi": prints?', ['h i','hi','i h'], 0));
-  Q.push(qMC('for x in []: runs?', ['Yes','No'], 1));
+  Q.push(qMC('for x in []: runs?', ['Yes','No'], 1,
+  'for x in []:\n    print("will not run")\nprint("done")',
+  'Looping over an empty list executes the body zero times.'));
   while(Q.length<20){ Q.push(qMC('range(0)==?', ['[]','[0]','[1]'], 0)); }
   return Q;
 }
@@ -408,7 +441,9 @@ function makeQ8(){
   const Q=[];
   Q.push(qMC('def f(x): return x+1; f(2)==?', ['2','3','error'], 1));
   Q.push(qMC('def f(): return 5; f()==?', ['5','None','error'], 0));
-  Q.push(qMC('def f(x=3): return x; f()==?', ['3','None','error'], 0));
+  Q.push(qMC('def f(x=3): return x; f()==?', ['3','None','error'], 0,
+    'def f(x=3):\n    return x\nprint(f())\nprint(f(5))',
+    'Default parameter values are used when an argument is not provided.'));
   Q.push(qMC('def f(a,b): return a*b; f(2,4)==?', ['6','8','24'], 1));
   Q.push(qMC('def f(): pass; f()==?', ['None','0','error'], 0));
   Q.push(qMC('return exits function?', ['True','False'], 0));
@@ -501,44 +536,68 @@ function makeQ12(){
 function makeQ13(){
   const Q=[];
   Q.push(qMC('Generator uses keyword', ['return','yield','await'], 1));
+  Q.push(qMC('yield pauses function execution?', ['True','False'], 0));
+  Q.push(qMC('Generator function returns', ['generator object','list','values'], 0));
+  Q.push(qMC('next(gen) gets', ['next value','all values','first value'], 0));
+  // Generator expressions
+  Q.push(qMC('(x*2 for x in range(3)) creates', ['generator','list','tuple'], 0));
+  Q.push(qMC('Generator expressions use', ['() parentheses','[] brackets','{} braces'], 0));
+  Q.push(qMC('list(x for x in range(3))==?', ['[0,1,2]','generator','(0,1,2)'], 0));
+  // Generator methods
+  Q.push(qMC('gen.send(value) sends value into', ['generator','caller','nowhere'], 0));
+  Q.push(qMC('gen.close() raises', ['StopIteration','GeneratorExit','ValueError'], 1));
+  Q.push(qMC('yield from delegates to', ['another generator/iterable','caller','parent function'], 0));
+  // Decorator basics
   Q.push(qMC('Decorator syntax starts with', ['@','%','&'], 0));
-  Q.push(qMC('next(gen) gets', ['next value','stops gen','first arg'], 0));
-  Q.push(qMC('yield from iter delegates to', ['another iter','caller','None'], 0));
-  Q.push(qMC('@decor def f(): pass is', ['invalid','valid'], 1));
-  Q.push(qMC('Generator function returns', ['generator','list','int'], 0));
-  Q.push(qMC('send() on generator', ['sends value in','closes it'], 0));
-  Q.push(qMC('close() on generator', ['raises StopIteration','keeps running'], 0));
-  Q.push(qMC('Decorator can modify', ['function behavior','Python syntax'], 0));
-  Q.push(qMC('functools.wraps used to', ['preserve metadata','speed up'], 0));
-  while(Q.length<20){ Q.push(qMC('yield pauses function?', ['True','False'], 0)); }
+  Q.push(qMC('@deco def f(): pass equivalent to', ['f = deco(f)','deco(f)','f = deco'], 0));
+  Q.push(qMC('Decorator wraps', ['function','class','module'], 0));
+  // functools
+  Q.push(qMC('functools.wraps preserves', ['function metadata','function speed','function result'], 0));
+  Q.push(qMC('@lru_cache decorator provides', ['memoization','logging','timing'], 0));
+  Q.push(qMC('functools.partial creates', ['new function with some args fixed','decorator','generator'], 0));
+  // Advanced generator concepts
+  Q.push(qMC('Generator pipeline chains', ['generators together','functions together','classes together'], 0));
+  Q.push(qMC('Infinite generators are', ['memory efficient','memory intensive','impossible'], 0));
+  Q.push(qMC('Generator state is', ['maintained between calls','reset each call','global'], 0));
+  // Decorator patterns
+  Q.push(qMC('Timing decorator typically uses', ['time module','datetime module','clock module'], 0));
+  Q.push(qMC('Caching decorator stores', ['function results','function calls','function code'], 0));
+  Q.push(qMC('Authentication decorator checks', ['user permissions','function syntax','function speed'], 0));
+  Q.push(qMC('Class decorators modify', ['class definition','instance creation','method calls'], 0));
+  while(Q.length<24){ Q.push(qMC('Coroutines use', ['async/await','yield','return'], 0)); }
   return Q;
 }
 
 function makeQ14(){
   const Q=[];
-  // Mixed questions from earlier topics
-  Q.push(qMC('x=3; print(x) prints', ['x','3','error'], 1));
-  Q.push(qMC('3%2==', ['0','1','2'], 1));
-  Q.push(qMC('"Hi"[1]==', ['H','i','I'], 1));
-  Q.push(qMC('[1,2,3][0]==', ['1','2','3'], 0));
-  Q.push(qMC('{"a":1}["a"]==', ['1','"1"','error'], 0));
-  Q.push(qMC('x=5; x>3?', ['True','False'], 0));
-  Q.push(qMC('list(range(3))==', ['[0,1,2]','[1,2,3]','[0,1,2,3]'], 0));
-  Q.push(qMC('def f(x): return x*2; f(3)==', ['5','6','8'], 1));
-  Q.push(qMC('import math; math.sqrt(16)==', ['4','4.0','8'], 1));
-  Q.push(qMC('open("f","w") mode?', ['write','read','append'], 0));
-  Q.push(qMC('try: 1/0 except ZeroDivisionError:', ['catches','misses'], 0));
-  Q.push(qMC('class C: pass; type(C()) is', ['object','class','function'], 0));
-  Q.push(qMC('Generator keyword', ['yield','return','class'], 0));
-  // Harder mixed
-  Q.push(qMC('sum(i*i for i in range(4))==', ['14','30','16'], 0));
-  Q.push(qMC('len({1,1,2})==', ['2','3','1'], 0));
-  Q.push(qMC('"ab"*3==', ['ababab','ab3','aaabbb'], 0));
-  Q.push(qMC('2**3==', ['6','8','9'], 1));
-  Q.push(qMC('bool([])==', ['True','False'], 1));
-  Q.push(qMC('len("hello"[:4])==', ['3','4','5'], 1));
-  Q.push(qMC('d={"x":1}; d.get("y",2)==', ['1','2','error'], 1));
-  while(Q.length<20){ Q.push(qMC('range(1,4)==', ['[1,2,3]','[1,2,3,4]','[0,1,2]'], 0)); }
+  // Integrated concepts from all stages
+  Q.push(qMC('x=3; type(x).__name__==?', ['"int"','"integer"','"number"'], 0));
+  Q.push(qMC('3**2*2+1==?', ['17','19','37'], 1));
+  Q.push(qMC('"Hello"[1:4].upper()==?', ['"ELL"','"ell"','"ELLO"'], 0));
+  Q.push(qMC('[1,2,3][::-1][0]==?', ['1','2','3'], 2));
+  Q.push(qMC('{"a":1,"b":2}.get("c",3)==?', ['1','2','3'], 2));
+  Q.push(qMC('x=0; "yes" if x else "no" returns', ['"yes"','"no"','error'], 1));
+  Q.push(qMC('sum(range(1,4))==?', ['6','10','3'], 0));
+  Q.push(qMC('def f(x=[]): x.append(1); return len(x); f(); f()==?', ['1','2','3'], 1));
+  Q.push(qMC('import math; int(math.sqrt(16))==?', ['4','4.0','16'], 0));
+  Q.push(qMC('Error handling: except ValueError catches', ['value errors','all errors','type errors'], 0));
+  // Advanced integration
+  Q.push(qMC('class C: x=1; C.x=2; C().x==?', ['1','2','error'], 1));
+  Q.push(qMC('(lambda x: x*2)(5)==?', ['10','7','25'], 0));
+  Q.push(qMC('list(enumerate("ab"))==?', ['[(0,"a"),(1,"b")]','"ab"','[0,1]'], 0));
+  Q.push(qMC('{x:x*x for x in range(3)}==?', ['{0:0,1:1,2:4}','{0,1,4}','[0,1,4]'], 0));
+  Q.push(qMC('set([1,2,2,3]) & set([2,3,4])==?', ['{2,3}','{1,2,3,4}','{1,4}'], 0));
+  // Project-level complexity
+  Q.push(qMC('Combining file I/O with JSON: json.load(open("f.json"))', ['reads JSON from file','writes JSON to file','error - missing mode'], 0));
+  Q.push(qMC('try: int("x") except: "error" returns', ['"error"','ValueError','int'], 0));
+  Q.push(qMC('Generator: def countdown(n): while n>0: yield n; n-=1; list(countdown(3))==?', ['[3,2,1]','[1,2,3]','[0,1,2]'], 0));
+  Q.push(qMC('Decorator application: @timer def slow(): time.sleep(1); slow() prints', ['timing info','sleep output','nothing'], 0));
+  Q.push(qMC('Class inheritance: class Dog(Animal): def speak(self): return "Woof"; Dog().speak()==?', ['"Woof"','"Animal sound"','error'], 0));
+  // Real-world scenarios
+  Q.push(qMC('Password validation: all(c.isalnum() for c in "abc123")==?', ['True','False','error'], 0));
+  Q.push(qMC('Data processing: max([len(word) for word in "hello world".split()])==?', ['5','10','11'], 0));
+  Q.push(qMC('Config file: with open("config.json") as f: config=json.load(f) handles', ['JSON parsing','file closing','both'], 2));
+  while(Q.length<24){ Q.push(qMC('Full stack concept mastery requires', ['practice','memorization','theory only'], 0)); }
   return Q;
 }
 

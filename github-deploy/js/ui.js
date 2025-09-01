@@ -176,6 +176,14 @@
       bankAnswered = true;
       if(correct){ bankCorrect++; quizFeedback.textContent = `Correct! (${bankCorrect}/${bankQuestions.length})`; quizFeedback.className='feedback glow-green'; window.World.addReward(2,1); }
       else { quizFeedback.textContent = 'Incorrect. You can still proceed to the next question.'; quizFeedback.className='feedback glow-red'; }
+      // Show explanation if available
+      if(cur.explanation){
+        const expEl = document.getElementById('quizExplanation');
+        if(expEl){ expEl.innerHTML = '<strong>Explanation:</strong> ' + cur.explanation; }
+      } else if(cur.code){
+        const expEl = document.getElementById('quizExplanation');
+        if(expEl){ expEl.innerHTML = '<strong>Hint:</strong> Click "Try in Console" to run this code and observe the output step-by-step.'; }
+      }
       submitQuizBtn.disabled = true;
       nextQuestionBtn.disabled = false;
       // If last question, finalize
@@ -198,6 +206,14 @@
     quizPassed = !!correct;
     quizFeedback.textContent = correct? 'Correct!': 'Try again';
     quizFeedback.className = 'feedback ' + (correct? 'glow-green':'glow-red');
+    // Show explanation if available
+    if(q && q.explanation){
+      const expEl = document.getElementById('quizExplanation');
+      if(expEl){ expEl.innerHTML = '<strong>Explanation:</strong> ' + q.explanation; }
+    } else if(q && q.code){
+      const expEl = document.getElementById('quizExplanation');
+      if(expEl){ expEl.innerHTML = '<strong>Hint:</strong> Click \"Try in Console\" to run this code and observe what happens.'; }
+    }
     checkUnlock();
     if(correct){ window.World.addReward(10,5); }
   });
@@ -230,6 +246,22 @@
     const cur = bankQuestions[bankIdx];
     if(!cur){ return; }
     const qEl = document.createElement('div'); qEl.textContent = cur.question; qEl.className='monospace'; quizContent.appendChild(qEl);
+
+    // Optional code snippet preview + Try button
+    if(cur.code){
+      const pre = document.createElement('pre'); pre.className = 'monospace'; pre.style.whiteSpace='pre-wrap'; pre.style.background='rgba(148,163,184,0.08)'; pre.style.padding='8px'; pre.style.borderRadius='8px'; pre.textContent = cur.code; quizContent.appendChild(pre);
+      const tryBtn = document.createElement('button'); tryBtn.className='secondary'; tryBtn.textContent='Try in Console ▶'; tryBtn.style.margin='8px 0';
+      tryBtn.addEventListener('click', ()=>{
+        const lessonTabBtn = document.querySelector('.tab-btn[data-tab="lesson"]');
+        if(lessonTabBtn){ lessonTabBtn.click(); }
+        if(consoleInput){ consoleInput.value = cur.code; }
+        initConsoleOnce();
+        runConsoleCode();
+        if(consoleInput){ consoleInput.focus(); }
+      });
+      quizContent.appendChild(tryBtn);
+    }
+
     if(cur.type==='mc'){
       cur.choices.forEach((c,idx)=>{
         const row = document.createElement('label'); row.style.display='block'; row.style.margin='6px 0';
@@ -241,6 +273,9 @@
     } else if(cur.type==='fill'){
       const input = document.createElement('input'); input.placeholder='your answer'; input.className='primary'; quizContent.appendChild(input);
     }
+
+    // Placeholder for explanation (filled after submission)
+    const exp = document.createElement('div'); exp.id = 'quizExplanation'; exp.className='feedback'; exp.style.marginTop='8px'; quizContent.appendChild(exp);
   }
 
   function renderLesson(stage){
@@ -292,6 +327,19 @@
     bankMode = false;
     if(q && q.type==='mc'){
       const qEl = document.createElement('div'); qEl.textContent = q.question; qEl.className='monospace'; quizContent.appendChild(qEl);
+      if(q.code){
+        const pre = document.createElement('pre'); pre.className = 'monospace'; pre.style.whiteSpace='pre-wrap'; pre.style.background='rgba(148,163,184,0.08)'; pre.style.padding='8px'; pre.style.borderRadius='8px'; pre.textContent = q.code; quizContent.appendChild(pre);
+        const tryBtn = document.createElement('button'); tryBtn.className='secondary'; tryBtn.textContent='Try in Console ▶'; tryBtn.style.margin='8px 0';
+        tryBtn.addEventListener('click', ()=>{
+          const lessonTabBtn = document.querySelector('.tab-btn[data-tab="lesson"]');
+          if(lessonTabBtn){ lessonTabBtn.click(); }
+          if(consoleInput){ consoleInput.value = q.code; }
+          initConsoleOnce();
+          runConsoleCode();
+          if(consoleInput){ consoleInput.focus(); }
+        });
+        quizContent.appendChild(tryBtn);
+      }
       q.choices.forEach((c,idx)=>{
         const row = document.createElement('label'); row.style.display='block'; row.style.margin='6px 0';
         const input = document.createElement('input'); input.type='radio'; input.name='mc'; input.value=String(idx);
@@ -299,11 +347,26 @@
         const span = document.createElement('span'); span.textContent=' '+c; row.appendChild(span);
         quizContent.appendChild(row);
       });
+      const exp = document.createElement('div'); exp.id = 'quizExplanation'; exp.className='feedback'; exp.style.marginTop='8px'; quizContent.appendChild(exp);
       submitQuizBtn.disabled = false;
       nextQuestionBtn.disabled = true;
     } else if(q && q.type==='fill'){
       const qEl = document.createElement('div'); qEl.textContent = q.question; qEl.className='monospace'; quizContent.appendChild(qEl);
+      if(q.code){
+        const pre = document.createElement('pre'); pre.className = 'monospace'; pre.style.whiteSpace='pre-wrap'; pre.style.background='rgba(148,163,184,0.08)'; pre.style.padding='8px'; pre.style.borderRadius='8px'; pre.textContent = q.code; quizContent.appendChild(pre);
+        const tryBtn = document.createElement('button'); tryBtn.className='secondary'; tryBtn.textContent='Try in Console ▶'; tryBtn.style.margin='8px 0';
+        tryBtn.addEventListener('click', ()=>{
+          const lessonTabBtn = document.querySelector('.tab-btn[data-tab="lesson"]');
+          if(lessonTabBtn){ lessonTabBtn.click(); }
+          if(consoleInput){ consoleInput.value = q.code; }
+          initConsoleOnce();
+          runConsoleCode();
+          if(consoleInput){ consoleInput.focus(); }
+        });
+        quizContent.appendChild(tryBtn);
+      }
       const input = document.createElement('input'); input.placeholder='your answer'; input.className='primary'; quizContent.appendChild(input);
+      const exp = document.createElement('div'); exp.id = 'quizExplanation'; exp.className='feedback'; exp.style.marginTop='8px'; quizContent.appendChild(exp);
       submitQuizBtn.disabled = false;
       nextQuestionBtn.disabled = true;
     } else {
