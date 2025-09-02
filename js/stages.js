@@ -344,15 +344,30 @@ function makeQ2(){
 
 function makeQ3(){
   const Q=[];
-  Q.push(qMC('"Hello"[1:4] == ?', ['Hel','ell','llo'], 1));
-  Q.push(qMC('len("Python") == ?', ['5','6','7'], 1));
-  Q.push(qMC('"Py" + "thon" == ?', ['Pyth on','Python','Py-thon'], 1));
-  Q.push(qMC('"abc"*3 == ?', ['abcabcabc','abc3','aaabbbccc'], 0));
+  Q.push(qMC('"Hello"[1:4] == ?', ['Hel','ell','llo'], 1,
+  's = "Hello"\nprint(s[1:4])',
+  'Slices exclude the stop index; 1:4 yields "ell".'
+  ));
+  Q.push(qMC('len("Python") == ?', ['5','6','7'], 1,
+  's = "Python"\nprint(len(s))',
+  'len counts characters; "Python" has 6.'
+  ));
+  Q.push(qMC('"Py" + "thon" == ?', ['Pyth on','Python','Py-thon'], 1,
+  'print("Py" + "thon")',
+  'String concatenation joins texts without spaces unless you add them.'
+  ));
+  Q.push(qMC('"abc"*3 == ?', ['abcabcabc','abc3','aaabbbccc'], 0,
+  'print("abc"*3)',
+  'The repetition operator * repeats the string the given number of times.'
+  ));
   Q.push(qMC('"Hello"[0] == ?', ['H','e','o'], 0));
   Q.push(qMC('"Hello"[-1] == ?', ['H','o','l'], 1));
   Q.push(qMC('"Hello"[:2] == ?', ['He','el','lo'], 0));
   Q.push(qMC('"Hello"[2:] == ?', ['He','llo','llo'], 2));
-  Q.push(qMC('"Hi".upper() == ?', ['HI','hi','Hi '], 0));
+  Q.push(qMC('"Hi".upper() == ?', ['HI','hi','Hi '], 0,
+  'print("Hi".upper())',
+  'upper returns a new uppercase string; the original remains unchanged.'
+  ));
   Q.push(qMC('"Hi".lower() == ?', ['HI','hi','Hi'], 1));
   Q.push(qMC('"a,b,c".split(",")[1] == ?', ['a','b','c'], 1));
   Q.push(qMC('"  x ".strip() == ?', ['"  x "','"x"','" x"'], 1));

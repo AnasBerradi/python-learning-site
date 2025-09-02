@@ -348,13 +348,23 @@ function makeQ2(){
 
 function makeQ3(){
   const Q=[];
-  Q.push(qMC('"Hello"[1:4] == ?', ['Hel','ell','llo'], 1));
-  Q.push(qMC('len("Python") == ?', ['5','6','7'], 1));
-  Q.push(qMC('"Py" + "thon" == ?', ['Pyth on','Python','Py-thon'], 1));
+  Q.push(qMC('"Hello"[1:4] == ?', ['Hel','ell','llo'], 1,
+  's = "Hello"\nprint(s[1:4])',
+  'Slices exclude the stop index; 1:4 yields "ell".'
+  ));
+  Q.push(qMC('len("Python") == ?', ['5','6','7'], 1,
+  's = "Python"\nprint(len(s))',
+  'len counts characters; "Python" has 6.'
+  ));
+  Q.push(qMC('"Py" + "thon" == ?', ['Pyth on','Python','Py-thon'], 1,
+  'print("Py" + "thon")',
+  'String concatenation joins texts without spaces unless you add them.'
+  ));
   Q.push(qMC('"abc"*3 == ?', ['abcabcabc','abc3','aaabbbccc'], 0,
-  's = "abc"\nprint(s * 3)',
-  'Strings support repetition with *. For example, "ha" * 3 -> "hahaha".'));
-Q.push(qMC('"Hello"[0] == ?', ['H','e','o'], 0,
+  'print("abc"*3)',
+  'The repetition operator * repeats the string the given number of times.'
+  ));
+  Q.push(qMC('"Hello"[0] == ?', ['H','e','o'], 0,
   's = "Hello"\nprint(s[0])',
   'Indexing starts at 0 in Python.'));
 Q.push(qMC('"Hello"[-1] == ?', ['H','o','l'], 1,
@@ -376,8 +386,9 @@ Q.push(qMC('"z" in "hello" ?', ['True','False'], 1));
 function makeQ4(){
   const Q=[];
   Q.push(qMC('my=[1,2]; my.append(3); my==?', ['[1,2]','[1,2,3]','[3,2,1]'], 1,
-  'my=[1,2]\nmy.append(3)\nprint(my)',
-  'append adds an item to the end of the list.'));
+  'my = [1,2]\nmy.append(3)\nprint(my)',
+  'append mutates the list in place by adding to the end.'
+  ));
   Q.push(qMC('t=(1,2); t[0]==?', ['1','2','error'], 0));
   Q.push(qMC('t=(1,2); t[0]=9', ['works','error'], 1,
     't=(1,2)\ntry:\n    t[0]=9\nexcept TypeError as e:\n    print("TypeError:", e)',
@@ -432,9 +443,13 @@ function makeQ6(){
 function makeQ7(){
   const Q=[];
   Q.push(qMC('for i in range(3): print(i) prints', ['1 2 3','0 1 2','0 1 2 3'], 1,
-  'for i in range(3):\n    print(i, end=" ")',
-  'range(3) yields 0, 1, 2 — not including 3.'));
-  Q.push(qMC('list(range(2,5))==?', ['[2,3,4]','[2,3,4,5]','[3,4,5]'], 0));
+  'for i in range(3):\n    print(i)',
+  'range(3) produces 0,1,2. Each prints on its own line.'
+  ));
+  Q.push(qMC('list(range(2,5))==?', ['[2,3,4]','[2,3,4,5]','[3,4,5]'], 0,
+  'print(list(range(2,5)))',
+  'range stop is exclusive, so 2,3,4.'
+  ));
   Q.push(qMC('sum(range(4))==?', ['6','10','4'], 0));
   Q.push(qMC('while i<3: i+=1 runs how many times (i starts 0)?', ['2','3','4'], 1));
   Q.push(qMC('break stops loop?', ['True','False'], 0));
