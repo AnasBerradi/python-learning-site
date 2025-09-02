@@ -440,7 +440,10 @@ function makeQ7(){
 function makeQ8(){
   const Q=[];
   Q.push(qMC('def f(x): return x+1; f(2)==?', ['2','3','error'], 1));
-  Q.push(qMC('def f(): return 5; f()==?', ['5','None','error'], 0));
+  Q.push(qMC('def f(): return 5; f()==?', ['5','None','error'], 0,
+    'def f():\n    return 5\nprint(f())',
+    'A function returns the value specified by return. Here, f() returns 5, so the expression equals 5. If there was no return, f() would evaluate to None.'
+  ));
   Q.push(qMC('def f(x=3): return x; f()==?', ['3','None','error'], 0,
     'def f(x=3):\n    return x\nprint(f())\nprint(f(5))',
     'Default parameter values are used when an argument is not provided.'));
