@@ -306,16 +306,16 @@ function makeQ2(){
     Q.push(qMC(`What is ${a}+${b}?`, [`${a+b-1}`, `${a+b}`, `${a*b}`], 1));
   });
   // Modulo and multiplication/div
-  Q.push(qMC('3 % 2 == ?', ['0','1','2'], 1));
+  Q.push(qMC('3 % 2 == ?', ['0','1','2'], 1, 'print(3 % 2)\nprint(9 % 2)', 'The % operator returns the remainder of division: 3 % 2 is 1; 9 % 2 is also 1.'));
   Q.push(qMC('9 % 2 == ?', ['0','1','2'], 1));
-  Q.push(qMC('8 / 2 == ?', ['4','4.0','2'], 1));
+  Q.push(qMC('8 / 2 == ?', ['4','4.0','2'], 1, 'print(8 / 2)\nprint(type(8 / 2))', 'In Python 3, / is true division and returns a float: 8 / 2 is 4.0.'));
   Q.push(qMC('3 * 4 == ?', ['7','12','34'], 1));
   // Comparisons
   Q.push(qMC('5 > 3 is ...', ['True','False'], 0));
   Q.push(qMC('5 == 5 is ...', ['True','False'], 0));
   Q.push(qMC('4 >= 6 is ...', ['True','False'], 1));
   // Mixed expressions
-  Q.push(qMC('3 + 2 * 4 == ?', ['20','11','35'], 1));
+  Q.push(qMC('3 + 2 * 4 == ?', ['20','11','35'], 1, 'print(3 + 2 * 4)\nprint((3 + 2) * 4)', 'Multiplication happens before addition: 3 + 2 * 4 is 11, but (3 + 2) * 4 is 20.'));
   Q.push(qMC('(3 + 2) * 4 == ?', ['20','11','14'], 0));
   Q.push(qMC('7 % 3 == ?', ['1','2','3'], 1));
   Q.push(qMC('10 - 3 * 3 == ?', ['1','7','9'], 0));
@@ -364,13 +364,13 @@ function makeQ4(){
 function makeQ5(){
   const Q=[];
   Q.push(qMC('{"a":1,"b":2}["b"]==?', ['1','2','error'], 1));
-  Q.push(qMC('d={"x":10}; d.get("y",0)==?', ['10','0','error'], 1));
+  Q.push(qMC('d={"x":10}; d.get("y",0)==?', ['10','0','error'], 1, 'd = {"x": 10}\nprint(d.get("y", 0))\nprint(d.get("x", 0))', 'dict.get(key, default) returns default when the key is missing.'));
   Q.push(qMC('set([1,1,2])==?', ['{1,1,2}','{1,2}','[1,2]'], 1));
   Q.push(qMC('"a" in {"a":1}?', ['True','False'], 0));
   Q.push(qMC('len({1,2,2,3})==?', ['3','4','2'], 0));
   Q.push(qMC('d={}; d["k"]=5; d["k"]==?', ['5','0','error'], 0));
   Q.push(qMC('d={"a":1}; d.keys().__contains__("a")?', ['True','False'], 0));
-  Q.push(qMC('{1,2}|{2,3}==?', ['{1,2,3}','{2}','{1,3}'], 0));
+  Q.push(qMC('{1,2}|{2,3}==?', ['{1,2,3}','{2}','{1,3}'], 0, 'print({1,2} | {2,3})\nprint({1,2} & {2,3})', 'Use | for union and & for intersection on sets.'));
   Q.push(qMC('{1,2}&{2,3}==?', ['{1,2,3}','{2}','{1,3}'], 1));
   Q.push(qMC('{1,2}-{2}==?', ['{1}','{2}','{1,2}'], 0));
   while(Q.length<20){ Q.push(qMC('d={"a":1}; "b" in d?', ['True','False'], 1)); }
@@ -388,7 +388,7 @@ function makeQ6(){
   Q.push(qMC('x=1; (x<0) or (x==1)?', ['True','False'], 0));
   Q.push(qMC('not False is ...', ['True','False'], 0));
   Q.push(qMC('not True is ...', ['True','False'], 1));
-  Q.push(qMC('x=None; if x: runs?', ['Yes','No'], 1));
+  Q.push(qMC('x=None; if x: runs?', ['Yes','No'], 1, 'x = None\nif x:\n    print("runs")\nelse:\n    print("does not run")', 'None is falsy in conditionals, so the else branch runs.'));
   while(Q.length<20){ Q.push(qMC('x=0; if x: runs?', ['Yes','No'], 1)); }
   return Q;
 }
@@ -415,7 +415,7 @@ function makeQ7(){
 function makeQ8(){
   const Q=[];
   Q.push(qMC('def f(x): return x+1; f(2)==?', ['2','3','error'], 1));
-  Q.push(qMC('def f(): return 5; f()==?', ['5','None','error'], 0));
+  Q.push(qMC('def f(): return 5; f()==?', ['5','None','error'], 0, 'def f():\n    return 5\nprint(f())', 'return sends a value back; here f() evaluates to 5.'));
   Q.push(qMC('def f(x=3): return x; f()==?', ['3','None','error'], 0));
   Q.push(qMC('def f(a,b): return a*b; f(2,4)==?', ['6','8','24'], 1));
   Q.push(qMC('def f(): pass; f()==?', ['None','0','error'], 0));
