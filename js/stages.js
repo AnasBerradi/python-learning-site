@@ -266,19 +266,37 @@ function qMC(question, choices, correct, code = null, explanation = null){
 
 function makeQ1(){
   const Q=[];
-  // Literals and their types
-  Q.push(qMC('type(3) is ...', ['int','float','str','bool'], 0));
-  Q.push(qMC('type(3.0) is ...', ['int','float','str','bool'], 1));
-  Q.push(qMC('type("3") is ...', ['int','float','str','bool'], 2));
-  Q.push(qMC('type(True) is ...', ['int','float','str','bool'], 3));
+  // Literals and their types (enhanced with code to enable Try button)
+  Q.push(qMC('type(3) is ...', ['int','float','str','bool'], 0,
+    'x = 3\nprint(type(x))\nprint(type(x).__name__)',
+    'The number 3 is an integer literal. Python automatically determines data types.'
+  ));
+  Q.push(qMC('type(3.0) is ...', ['int','float','str','bool'], 1,
+    'x = 3.0\nprint(type(x))\nprint(x == 3)  # True, but different types',
+    'Adding .0 makes it a float, even though the value equals integer 3.'
+  ));
+  Q.push(qMC('type("3") is ...', ['int','float','str','bool'], 2,
+    'x = "3"\nprint(type(x))\nprint(x + x)  # String concatenation, not addition',
+    'Quotes make it a string. Notice "3" + "3" = "33", not 6.'
+  ));
+  Q.push(qMC('type(True) is ...', ['int','float','str','bool'], 3,
+    'x = True\nprint(type(x))\nprint(x + 1)  # True acts like 1 in math',
+    'True is a boolean, but it can behave like the integer 1 in calculations.'
+  ));
   // isinstance vs type
   Q.push(qMC('isinstance(True, int)?', ['True','False'], 0));
   Q.push(qMC('type(True) == int?', ['True','False'], 1));
   Q.push(qMC('True + True == ?', ['1','2','True','error'], 1));
   Q.push(qMC('int(True) == ?', ['1','0','True','error'], 0));
   // Division and floor division
-  Q.push(qMC('3/2 == ?', ['1','1.5','2','error'], 1));
-  Q.push(qMC('3//2 == ?', ['1','1.5','2','error'], 0));
+  Q.push(qMC('3/2 == ?', ['1','1.5','2','error'], 1,
+    'print(3/2)\nprint(type(3/2).__name__)',
+    'Single slash is true division: result is float 1.5.'
+  ));
+  Q.push(qMC('3//2 == ?', ['1','1.5','2','error'], 0,
+    'print(3//2)\nprint(type(3//2).__name__)',
+    'Double slash is floor division: result is integer 1.'
+  ));
   Q.push(qMC('-3//2 == ?', ['-1','-2','1','error'], 1));
   Q.push(qMC('-3 % 2 == ?', ['-1','1','0','2'], 1));
   // Conversions (pitfalls)

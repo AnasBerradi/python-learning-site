@@ -1156,6 +1156,33 @@
     return evaluateArithmetic(expr);
   }
 
+  function resolveNamePath(path){
+    const parts = String(path).split('.');
+    if(!parts.length) throw new Error(`Invalid name path '${path}'`);
+    const first = parts[0];
+    let obj;
+    const ctx = consoleVars && consoleVars.pythonContext;
+    if(!ctx) throw new Error('Python context not initialized');
+    if(ctx.builtins && Object.prototype.hasOwnProperty.call(ctx.builtins, first)){
+      obj = ctx.builtins[first];
+    } else if(Object.prototype.hasOwnProperty.call(ctx.variables, first)){
+      obj = ctx.variables[first];
+    } else if(Object.prototype.hasOwnProperty.call(ctx.imports, first)){
+      obj = ctx.imports[first];
+    } else {
+      throw new Error(`Name '${first}' is not defined`);
+    }
+    for(let i=1;i<parts.length;i++){
+      const part = parts[i];
+      if(obj != null && (typeof obj === 'object' || typeof obj === 'function') && part in obj){
+        obj = obj[part];
+      } else {
+        throw new Error(`Attribute '${part}' not found on '${parts.slice(0,i).join('.')}'`);
+      }
+    }
+    return obj;
+  }
+
   function callUserFunction(funcName, args){
     const func = consoleVars.pythonContext.functions[funcName];
     
