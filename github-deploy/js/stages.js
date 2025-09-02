@@ -322,9 +322,15 @@ function makeQ2(){
     Q.push(qMC(`What is ${a}+${b}?`, [`${a+b-1}`, `${a+b}`, `${a*b}`], 1));
   });
   // Modulo and multiplication/div
-  Q.push(qMC('3 % 2 == ?', ['0','1','2'], 1));
+  Q.push(qMC('3 % 2 == ?', ['0','1','2'], 1,
+  'print(3 % 2)',
+  'The % operator returns the remainder after division; 3 % 2 is 1.'
+  ));
   Q.push(qMC('9 % 2 == ?', ['0','1','2'], 1));
-  Q.push(qMC('8 / 2 == ?', ['4','4.0','2'], 1));
+  Q.push(qMC('8 / 2 == ?', ['4','4.0','2'], 1,
+  'print(8 / 2)',
+  'In Python, / performs floating-point division, so 8 / 2 is 4.0.'
+  ));
   Q.push(qMC('3 * 4 == ?', ['7','12','34'], 1));
   // Comparisons
   Q.push(qMC('5 > 3 is ...', ['True','False'], 0));
@@ -388,7 +394,10 @@ function makeQ4(){
 function makeQ5(){
   const Q=[];
   Q.push(qMC('{"a":1,"b":2}["b"]==?', ['1','2','error'], 1));
-  Q.push(qMC('d={"x":10}; d.get("y",0)==?', ['10','0','error'], 1));
+  Q.push(qMC('d={"x":10}; d.get("y",0)==?', ['10','0','error'], 1,
+  'd = {"x": 10}\nprint(d.get("y", 0))',
+  'dict.get(key, default) returns default when the key is missing.'
+  ));
   Q.push(qMC('set([1,1,2])==?', ['{1,1,2}','{1,2}','[1,2]'], 1));
   Q.push(qMC('"a" in {"a":1}?', ['True','False'], 0));
   Q.push(qMC('len({1,2,2,3})==?', ['3','4','2'], 0));
@@ -412,7 +421,10 @@ function makeQ6(){
   Q.push(qMC('x=1; (x<0) or (x==1)?', ['True','False'], 0));
   Q.push(qMC('not False is ...', ['True','False'], 0));
   Q.push(qMC('not True is ...', ['True','False'], 1));
-  Q.push(qMC('x=None; if x: runs?', ['Yes','No'], 1));
+  Q.push(qMC('x=None; if x: runs?', ['Yes','No'], 1,
+  'x = None\nif x:\n    print("runs")\nelse:\n    print("does not run")',
+  'None is falsy, so the if block does not run.'
+  ));
   while(Q.length<20){ Q.push(qMC('x=0; if x: runs?', ['Yes','No'], 1)); }
   return Q;
 }
