@@ -337,7 +337,10 @@ function makeQ2(){
   Q.push(qMC('5 == 5 is ...', ['True','False'], 0));
   Q.push(qMC('4 >= 6 is ...', ['True','False'], 1));
   // Mixed expressions
-  Q.push(qMC('3 + 2 * 4 == ?', ['20','11','35'], 1));
+  Q.push(qMC('3 + 2 * 4 == ?', ['20','11','35'], 1, 
+  'print(3 + 2 * 4)',
+  'Multiplication happens before addition: 3 + 2 * 4 is 11.'
+  ));
   Q.push(qMC('(3 + 2) * 4 == ?', ['20','11','14'], 0));
   Q.push(qMC('7 % 3 == ?', ['1','2','3'], 1));
   Q.push(qMC('10 - 3 * 3 == ?', ['1','7','9'], 0));
@@ -414,7 +417,10 @@ function makeQ5(){
   Q.push(qMC('len({1,2,2,3})==?', ['3','4','2'], 0));
   Q.push(qMC('d={}; d["k"]=5; d["k"]==?', ['5','0','error'], 0));
   Q.push(qMC('d={"a":1}; d.keys().__contains__("a")?', ['True','False'], 0));
-  Q.push(qMC('{1,2}|{2,3}==?', ['{1,2,3}','{2}','{1,3}'], 0));
+  Q.push(qMC('{1,2}|{2,3}==?', ['{1,2,3}','{2}','{1,3}'], 0, 
+  'print({1,2} | {2,3})',
+  'Use | for union on sets.'
+  ));
   Q.push(qMC('{1,2}&{2,3}==?', ['{1,2,3}','{2}','{1,3}'], 1));
   Q.push(qMC('{1,2}-{2}==?', ['{1}','{2}','{1,2}'], 0));
   while(Q.length<20){ Q.push(qMC('d={"a":1}; "b" in d?', ['True','False'], 1)); }
