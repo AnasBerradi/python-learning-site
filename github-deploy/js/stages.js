@@ -268,16 +268,16 @@ function makeQ1(){
   const Q=[];
   // Literals and their types
   Q.push(qMC('type(3) is ...', ['int','float','str','bool'], 0, 
-  'x = 3\nprint(type(x))\nprint(type(x).__name__)', 
+  'x = 3\nprint(type(x).__name__)', 
   'The number 3 is an integer literal. Python automatically determines data types.'));
 Q.push(qMC('type(3.0) is ...', ['int','float','str','bool'], 1,
-  'x = 3.0\nprint(type(x))\nprint(x == 3)  # True, but different types',
+  'x = 3.0\nprint(type(x).__name__)',
   'Adding .0 makes it a float, even though the value equals integer 3.'));
 Q.push(qMC('type("3") is ...', ['int','float','str','bool'], 2,
-  'x = "3"\nprint(type(x))\nprint(x + x)  # String concatenation, not addition',
+  'x = "3"\nprint(type(x).__name__)',
   'Quotes make it a string. Notice "3" + "3" = "33", not 6.'));
 Q.push(qMC('type(True) is ...', ['int','float','str','bool'], 3,
-  'x = True\nprint(type(x))\nprint(x + 1)  # True acts like 1 in math',
+  'x = True\nprint(type(x).__name__)',
   'True is a boolean, but it can behave like the integer 1 in calculations.'));
   // isinstance vs type
   Q.push(qMC('isinstance(True, int)?', ['True','False'], 0));
@@ -286,16 +286,16 @@ Q.push(qMC('type(True) is ...', ['int','float','str','bool'], 3,
   Q.push(qMC('int(True) == ?', ['1','0','True','error'], 0));
   // Division and floor division
   Q.push(qMC('3/2 == ?', ['1','1.5','2','error'], 1,
-  'print(3/2)\nprint(type(3/2).__name__)',
+  'print(3/2)',
   'Single slash is true division: result is float 1.5.'));
 Q.push(qMC('3//2 == ?', ['1','1.5','2','error'], 0,
-  'print(3//2)\nprint(type(3//2).__name__)',
+  'print(3//2)',
   'Double slash is floor division: it drops the fractional part.'));
 Q.push(qMC('-3//2 == ?', ['-1','-2','1','error'], 1,
-  'print(-3//2)\nprint(-3/2)',
+  'print(-3//2)',
   'Floor division floors toward negative infinity, so -1.5 floors to -2.'));
 Q.push(qMC('-3 % 2 == ?', ['-1','1','0','2'], 1,
-  'print(-3 % 2)\n# In Python, a % b has the sign of b',
+  'print(-3 % 2)',
   'Modulo keeps the sign of the divisor; remainder is 1 so that (-3)//2 * 2 + 1 == -3.'));
   // Conversions (pitfalls)
   Q.push(qMC('int("03") == ?', ['3','3.0','"03"','error'], 0));
@@ -485,7 +485,7 @@ function makeQ8(){
   Q.push(qMC('return exits function?', ['True','False'], 0));
   Q.push(qMC('def f(*args): len(args) for f(1,2,3)==?', ['2','3','4'], 1));
   Q.push(qMC('def f(**kw): f(a=1). "a" in kw?', ['True','False'], 0));
-  Q.push(qMC('def f(x): print(x) prints type for x="a"?', ['str','int','bool'], 0));
+  Q.push(qMC('def f(x): print(type(x).__name__) prints type for x="a"?', ['str','int','bool'], 0));
   Q.push(qMC('lambda x: x+1 is a ...', ['function','class','module'], 0));
   while(Q.length<20){ Q.push(qMC('def f(x): return x; type(f) is ...', ['function','class','int'], 0)); }
   return Q;
