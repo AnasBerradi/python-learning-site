@@ -474,18 +474,26 @@ function makeQ8(){
   const Q=[];
   Q.push(qMC('def f(x): return x+1; f(2)==?', ['2','3','error'], 1));
   Q.push(qMC('def f(): return 5; f()==?', ['5','None','error'], 0,
-    'def f():\n    return 5\nprint(f())',
-    'A function returns the value specified by return. Here, f() returns 5, so the expression equals 5. If there was no return, f() would evaluate to None.'
+  'def f():\n    return 5\nprint(f())',
+  'A function returns the value specified by return. Here, f() returns 5, so the expression equals 5. If there was no return, f() would evaluate to None.'
   ));
   Q.push(qMC('def f(x=3): return x; f()==?', ['3','None','error'], 0,
-    'def f(x=3):\n    return x\nprint(f())\nprint(f(5))',
-    'Default parameter values are used when an argument is not provided.'));
+  'def f(x=3):\n    return x\nprint(f())',
+  'Default parameter values are used when an argument is not provided.'
+  ));
+  // ensure only one *args Q and make it Try-ready
+  Q.push(qMC('def f(*args): len(args) for f(1,2,3)==?', ['2','3','4'], 1,
+  'def f(*args):\n    return len(args)\nprint(f(1,2,3))',
+  '*args collects positional arguments into a tuple; len(args) is 3 here.'
+  ));
   Q.push(qMC('def f(a,b): return a*b; f(2,4)==?', ['6','8','24'], 1));
   Q.push(qMC('def f(): pass; f()==?', ['None','0','error'], 0));
   Q.push(qMC('return exits function?', ['True','False'], 0));
-  Q.push(qMC('def f(*args): len(args) for f(1,2,3)==?', ['2','3','4'], 1));
   Q.push(qMC('def f(**kw): f(a=1). "a" in kw?', ['True','False'], 0));
-  Q.push(qMC('def f(x): print(type(x).__name__) prints type for x="a"?', ['str','int','bool'], 0));
+  Q.push(qMC('def f(x): print(type(x).__name__) prints type for x="a"?', ['str','int','bool'], 0,
+  'def f(x):\n    print(type(x).__name__)\nf("a")',
+  'type(x).__name__ shows the type name as a string; for "a", it prints str.'
+  ));
   Q.push(qMC('lambda x: x+1 is a ...', ['function','class','module'], 0));
   while(Q.length<20){ Q.push(qMC('def f(x): return x; type(f) is ...', ['function','class','int'], 0)); }
   return Q;

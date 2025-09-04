@@ -449,11 +449,18 @@ function makeQ8(){
   const Q=[];
   Q.push(qMC('def f(x): return x+1; f(2)==?', ['2','3','error'], 1));
   Q.push(qMC('def f(): return 5; f()==?', ['5','None','error'], 0, 'def f():\n    return 5\nprint(f())', 'return sends a value back; here f() evaluates to 5.'));
-  Q.push(qMC('def f(x=3): return x; f()==?', ['3','None','error'], 0));
+  Q.push(qMC('def f(x=3): return x; f()==?', ['3','None','error'], 0,
+  'def f(x=3):\n    return x\nprint(f())',
+  'Default parameter values are used when an argument is not provided.'
+  ));
   Q.push(qMC('def f(a,b): return a*b; f(2,4)==?', ['6','8','24'], 1));
   Q.push(qMC('def f(): pass; f()==?', ['None','0','error'], 0));
   Q.push(qMC('return exits function?', ['True','False'], 0));
   Q.push(qMC('def f(*args): len(args) for f(1,2,3)==?', ['2','3','4'], 1));
+  Q.push(qMC('def f(*args): len(args) for f(1,2,3)==?', ['2','3','4'], 1,
+  'def f(*args):\n    return len(args)\nprint(f(1,2,3))',
+  'The *args collects positional arguments into a tuple; len(args) is 3 here.'
+  ));
   Q.push(qMC('def f(**kw): f(a=1). "a" in kw?', ['True','False'], 0));
   Q.push(qMC('def f(x): print(type(x).__name__) prints type for x="a"?', ['str','int','bool'], 0));
   Q.push(qMC('lambda x: x+1 is a ...', ['function','class','module'], 0));
